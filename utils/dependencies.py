@@ -88,7 +88,7 @@ class DependencyDefinitionReader(object):
       DependencyDefinition: dependency definition.
     """
     config_parser = configparser.RawConfigParser()
-    config_parser.readfp(file_object)
+    config_parser.readfp(file_object)  # pylint: disable=deprecated-method
 
     for section_name in config_parser.sections():
       dependency_definition = DependencyDefinition(section_name)
