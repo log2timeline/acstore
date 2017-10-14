@@ -1,0 +1,15 @@
+Acknowledgements: acstore
+
+Copyright 2017 The ACStore Project Authors.
+Please see the AUTHORS file for details on individual authors.
+
+ACStore, or Attribute Container Storage, provides a stand-alone implementation
+to read and write plaso storage files.
+
+ACStore, originates from the Plaso project [https://github.com/log2timeline/plaso].
+It was largely rewritten and made into a stand-alone project to provide more
+flexibility and allow other projects to make use of the plaso storage objects.
+
+ACStore is currently developed and maintained by:
+* Daniel White
+* Joachim Metz
