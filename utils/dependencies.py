@@ -30,7 +30,7 @@ class DependencyDefinition(object):
   """
 
   def __init__(self, name):
-    """Initializes a dependency configuation.
+    """Initializes a dependency configuration.
 
     Args:
       name (str): name of the dependency.
@@ -76,7 +76,7 @@ class DependencyDefinitionReader(object):
     try:
       return config_parser.get(section_name, value_name)
     except configparser.NoOptionError:
-      return
+      return None
 
   def Read(self, file_object):
     """Reads dependency definitions.
@@ -88,7 +88,9 @@ class DependencyDefinitionReader(object):
       DependencyDefinition: dependency definition.
     """
     config_parser = configparser.RawConfigParser()
-    config_parser.readfp(file_object)  # pylint: disable=deprecated-method
+    # pylint: disable=deprecated-method
+    # TODO: replace readfp by read_file, check if Python 2 compatible
+    config_parser.readfp(file_object)
 
     for section_name in config_parser.sections():
       dependency_definition = DependencyDefinition(section_name)
@@ -100,21 +102,31 @@ class DependencyDefinitionReader(object):
 
 
 class DependencyHelper(object):
-  """Dependency helper."""
+  """Dependency helper.
 
+  Attributes:
+    dependencies (dict[str, DependencyDefinition]): dependencies.
+  """
+
+  _VERSION_NUMBERS_REGEX = re.compile(r'[0-9.]+')
   _VERSION_SPLIT_REGEX = re.compile(r'\.|\-')
 
-  def __init__(self):
-    """Initializes a dependency helper."""
+  def __init__(self, configuration_file='dependencies.ini'):
+    """Initializes a dependency helper.
+
+    Args:
+      configuration_file (Optional[str]): path to the dependencies
+          configuration file.
+    """
     super(DependencyHelper, self).__init__()
-    self._dependencies = {}
     self._test_dependencies = {}
+    self.dependencies = {}
 
     dependency_reader = DependencyDefinitionReader()
 
-    with open('dependencies.ini', 'r') as file_object:
+    with open(configuration_file, 'r') as file_object:
       for dependency in dependency_reader.Read(file_object):
-        self._dependencies[dependency.name] = dependency
+        self.dependencies[dependency.name] = dependency
 
     dependency = DependencyDefinition('mock')
     dependency.minimum_version = '0.7.1'
@@ -137,9 +149,9 @@ class DependencyHelper(object):
     module_object = self._ImportPythonModule(dependency.name)
     if not module_object:
       status_message = 'missing: {0:s}'.format(dependency.name)
-      return dependency.is_optional, status_message
+      return False, status_message
 
-    if not dependency.version_property or not dependency.minimum_version:
+    if not dependency.version_property:
       return True, dependency.name
 
     return self._CheckPythonModuleVersion(
@@ -185,20 +197,45 @@ class DependencyHelper(object):
 
     # Split the version string and convert every digit into an integer.
     # A string compare of both version strings will yield an incorrect result.
-    module_version_map = list(
-        map(int, self._VERSION_SPLIT_REGEX.split(module_version)))
-    minimum_version_map = list(
-        map(int, self._VERSION_SPLIT_REGEX.split(minimum_version)))
 
-    if module_version_map < minimum_version_map:
-      status_message = (
-          '{0:s} version: {1!s} is too old, {2!s} or later required').format(
-              module_name, module_version, minimum_version)
+    # Strip any semantic suffixes such as a1, b1, pre, post, rc, dev.
+    module_version = self._VERSION_NUMBERS_REGEX.findall(module_version)[0]
+
+    if module_version[-1] == '.':
+      module_version = module_version[:-1]
+
+    try:
+      module_version_map = list(
+          map(int, self._VERSION_SPLIT_REGEX.split(module_version)))
+    except ValueError:
+      status_message = 'unable to parse module version: {0:s} {1:s}'.format(
+          module_name, module_version)
       return False, status_message
 
+    if minimum_version:
+      try:
+        minimum_version_map = list(
+            map(int, self._VERSION_SPLIT_REGEX.split(minimum_version)))
+      except ValueError:
+        status_message = 'unable to parse minimum version: {0:s} {1:s}'.format(
+            module_name, minimum_version)
+        return False, status_message
+
+      if module_version_map < minimum_version_map:
+        status_message = (
+            '{0:s} version: {1!s} is too old, {2!s} or later required').format(
+                module_name, module_version, minimum_version)
+        return False, status_message
+
     if maximum_version:
-      maximum_version_map = list(
-          map(int, self._VERSION_SPLIT_REGEX.split(maximum_version)))
+      try:
+        maximum_version_map = list(
+            map(int, self._VERSION_SPLIT_REGEX.split(maximum_version)))
+      except ValueError:
+        status_message = 'unable to parse maximum version: {0:s} {1:s}'.format(
+            module_name, maximum_version)
+        return False, status_message
+
       if module_version_map > maximum_version_map:
         status_message = (
             '{0:s} version: {1!s} is too recent, {2!s} or earlier '
@@ -250,7 +287,7 @@ class DependencyHelper(object):
     try:
       module_object = list(map(__import__, [module_name]))[0]
     except ImportError:
-      return
+      return None
 
     # If the module name contains dots get the upper most module object.
     if '.' in module_name:
@@ -275,7 +312,7 @@ class DependencyHelper(object):
       else:
         status_indicator = '[FAILURE]'
 
-      print('{0:s}\t{1:s}.'.format(status_indicator, status_message))
+      print('{0:s}\t{1:s}'.format(status_indicator, status_message))
 
     elif verbose_output:
       print('[OK]\t\t{0:s}'.format(status_message))
@@ -292,13 +329,17 @@ class DependencyHelper(object):
     print('Checking availability and versions of dependencies.')
     check_result = True
 
-    for module_name, dependency in sorted(self._dependencies.items()):
+    for module_name, dependency in sorted(self.dependencies.items()):
       if module_name == 'sqlite3':
         result, status_message = self._CheckSQLite3()
       else:
         result, status_message = self._CheckPythonModule(dependency)
 
-      if not result:
+      if not result and module_name == 'lzma':
+        dependency.name = 'backports.lzma'
+        result, status_message = self._CheckPythonModule(dependency)
+
+      if not result and not dependency.is_optional:
         check_result = False
 
       self._PrintCheckDependencyStatus(
