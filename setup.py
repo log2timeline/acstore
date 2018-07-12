@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Installation and deployment script."""
 
 from __future__ import print_function
+
 import sys
 
 try:
@@ -91,15 +92,16 @@ else:
         elif line.startswith('%files'):
           # Cannot use %{_libdir} here since it can expand to "lib64".
           lines = [
-              '%files',
+              '%files -n {0:s}-%{{name}}'.format(python_package),
               '%defattr(644,root,root,755)',
               '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
-              '%{_prefix}/lib/python*/site-packages/acstore/*.py',
+              '%{_prefix}/lib/python*/site-packages/**/*.py',
               '%{_prefix}/lib/python*/site-packages/acstore*.egg-info/*',
-              '%exclude %{_prefix}/lib/python*/site-packages/acstore/*.pyc',
-              '%exclude %{_prefix}/lib/python*/site-packages/acstore/*.pyo',
-              ('%exclude %{_prefix}/lib/python*/site-packages/acstore/'
-               '__pycache__/*')]
+              '',
+              '%exclude %{_prefix}/share/doc/*',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyc',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyo',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/__pycache__/*']
 
           python_spec_file.extend(lines)
           break
@@ -128,7 +130,7 @@ else:
 
 
 acstore_description = (
-    'Attribute Container Storage (ACStore)')
+    'Attribute Container Storage (ACStore).')
 
 acstore_long_description = (
     'ACStore, or Attribute Container Storage, provides a stand-alone '
@@ -141,8 +143,8 @@ setup(
     long_description=acstore_long_description,
     license='Apache License, Version 2.0',
     url='https://github.com/log2timeline/acstore',
-    maintainer='dfDateTime development team',
-    maintainer_email='log2timeline-dev@googlegroups.com',
+    maintainer='Log2Timeline maintainers',
+    maintainer_email='log2timeline-maintainers@googlegroups.com',
     cmdclass={
         'bdist_msi': BdistMSICommand,
         'bdist_rpm': BdistRPMCommand},
@@ -153,7 +155,7 @@ setup(
         'Programming Language :: Python',
     ],
     packages=find_packages('.', exclude=[
-        'examples', 'tests', 'tests.*', 'utils']),
+        'tests', 'tests.*', 'utils']),
     package_dir={
         'acstore': 'acstore'
     },
