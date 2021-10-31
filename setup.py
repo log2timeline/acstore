@@ -112,10 +112,12 @@ else:
 
           lines.extend([
               '%{python3_sitelib}/acstore/*.py',
+              '%{python3_sitelib}/acstore/*/*.py',
               '%{python3_sitelib}/acstore*.egg-info/*',
               '',
               '%exclude %{_prefix}/share/doc/*',
-              '%exclude %{python3_sitelib}/acstore/__pycache__/*'])
+              '%exclude %{python3_sitelib}/acstore/__pycache__/*',
+              '%exclude %{python3_sitelib}/acstore/*/__pycache__/*'])
 
           python_spec_file.extend(lines)
           break
@@ -178,7 +180,7 @@ acstore_description = (
 
 acstore_long_description = (
     'ACStore, or Attribute Container Storage, provides a stand-alone '
-    'implementation to read and write plaso storage files.')
+    'implementation to read and write attribute container storage files.')
 
 setup(
     name='acstore',
@@ -199,7 +201,7 @@ setup(
         'Programming Language :: Python',
     ],
     packages=find_packages('.', exclude=[
-        'tests', 'tests.*', 'utils']),
+        'docs', 'tests', 'tests.*', 'utils']),
     package_dir={
         'acstore': 'acstore'
     },
