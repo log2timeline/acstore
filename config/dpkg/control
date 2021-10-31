@@ -12,4 +12,4 @@ Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}
 Description: Python 3 module of ACStore
  ACStore, or Attribute Container Storage, provides a stand-alone
- implementation to read and write plaso storage files.
+ implementation to read and write attribute container storage files.
