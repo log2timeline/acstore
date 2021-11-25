@@ -4,7 +4,7 @@
 
 import unittest
 
-from acstore import fake
+from acstore import fake_store
 
 from tests import test_lib
 
@@ -21,7 +21,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the _WriteExistingAttributeContainer function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     number_of_containers = test_store.GetNumberOfAttributeContainers(
@@ -49,7 +49,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the _WriteNewAttributeContainer function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     number_of_containers = test_store.GetNumberOfAttributeContainers(
@@ -68,7 +68,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the AddAttributeContainer function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     number_of_containers = test_store.GetNumberOfAttributeContainers(
@@ -90,7 +90,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the GetAttributeContainerByIdentifier function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     test_store.AddAttributeContainer(attribute_container)
@@ -112,7 +112,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the GetAttributeContainerByIndex function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     container = test_store.GetAttributeContainerByIndex(
@@ -132,7 +132,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     attribute_container = test_lib.TestAttributeContainer()
     attribute_container.attribute = '8f0bf95a7959baad9666b21a7feed79d'
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     containers = list(test_store.GetAttributeContainers(
@@ -163,7 +163,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the GetNumberOfAttributeContainers function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     number_of_containers = test_store.GetNumberOfAttributeContainers(
@@ -182,7 +182,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the HasAttributeContainers function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     result = test_store.HasAttributeContainers(
@@ -199,14 +199,14 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
 
   def testOpenClose(self):
     """Tests the Open and Close functions."""
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
     test_store.Close()
 
     test_store.Open()
     test_store.Close()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
     test_store.Close()
 
@@ -224,7 +224,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the UpdateAttributeContainer function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    test_store = fake.FakeAttributeContainerStore()
+    test_store = fake_store.FakeAttributeContainerStore()
     test_store.Open()
 
     number_of_containers = test_store.GetNumberOfAttributeContainers(

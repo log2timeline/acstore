@@ -9,6 +9,25 @@ Subpackages
 
    acstore.containers
 
+Submodules
+----------
+
+acstore.fake\_store module
+--------------------------
+
+.. automodule:: acstore.fake_store
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+acstore.interface module
+------------------------
+
+.. automodule:: acstore.interface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
