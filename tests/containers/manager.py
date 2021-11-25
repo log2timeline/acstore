@@ -4,26 +4,9 @@
 
 import unittest
 
-from acstore.containers import interface
 from acstore.containers import manager
 
 from tests import test_lib as shared_test_lib
-
-
-class TestAttributeContainer(interface.AttributeContainer):
-  """Attribute container for testing purposes.
-
-  Attributes:
-    attribute (str): attribute for testing purposes.
-  """
-  CONTAINER_TYPE = 'test_container'
-
-  SCHEMA = {'attribute': 'str'}
-
-  def __init__(self):
-    """Initializes an attribute container."""
-    super(TestAttributeContainer, self).__init__()
-    self.attribute = None
 
 
 class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
@@ -34,7 +17,7 @@ class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
   def testCreateAttributeContainer(self):
     """Tests the CreateAttributeContainer function."""
     manager.AttributeContainersManager.RegisterAttributeContainer(
-        TestAttributeContainer)
+        shared_test_lib.TestAttributeContainer)
 
     try:
       attribute_container = (
@@ -47,12 +30,12 @@ class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
 
     finally:
       manager.AttributeContainersManager.DeregisterAttributeContainer(
-          TestAttributeContainer)
+          shared_test_lib.TestAttributeContainer)
 
   def testGetContainerTypes(self):
     """Tests the GetContainerTypes function."""
     manager.AttributeContainersManager.RegisterAttributeContainer(
-        TestAttributeContainer)
+        shared_test_lib.TestAttributeContainer)
 
     try:
       container_types = manager.AttributeContainersManager.GetContainerTypes()
@@ -60,24 +43,24 @@ class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
 
     finally:
       manager.AttributeContainersManager.DeregisterAttributeContainer(
-          TestAttributeContainer)
+          shared_test_lib.TestAttributeContainer)
 
   def testGetSchema(self):
     """Tests the GetSchema function."""
     manager.AttributeContainersManager.RegisterAttributeContainer(
-        TestAttributeContainer)
+        shared_test_lib.TestAttributeContainer)
 
     try:
       schema = manager.AttributeContainersManager.GetSchema('test_container')
       self.assertIsNotNone(schema)
-      self.assertEqual(schema, TestAttributeContainer.SCHEMA)
+      self.assertEqual(schema, shared_test_lib.TestAttributeContainer.SCHEMA)
 
       with self.assertRaises(ValueError):
         manager.AttributeContainersManager.GetSchema('bogus')
 
     finally:
       manager.AttributeContainersManager.DeregisterAttributeContainer(
-          TestAttributeContainer)
+          shared_test_lib.TestAttributeContainer)
 
   def testAttributeContainerRegistration(self):
     """Tests the Register and DeregisterAttributeContainer functions."""
@@ -85,7 +68,7 @@ class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
         manager.AttributeContainersManager._attribute_container_classes)
 
     manager.AttributeContainersManager.RegisterAttributeContainer(
-        TestAttributeContainer)
+        shared_test_lib.TestAttributeContainer)
 
     try:
       self.assertEqual(
@@ -94,11 +77,11 @@ class AttributeContainersManagerTest(shared_test_lib.BaseTestCase):
 
       with self.assertRaises(KeyError):
         manager.AttributeContainersManager.RegisterAttributeContainer(
-            TestAttributeContainer)
+            shared_test_lib.TestAttributeContainer)
 
     finally:
       manager.AttributeContainersManager.DeregisterAttributeContainer(
-          TestAttributeContainer)
+          shared_test_lib.TestAttributeContainer)
 
     self.assertEqual(
         len(manager.AttributeContainersManager._attribute_container_classes),
