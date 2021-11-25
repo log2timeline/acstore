@@ -5,26 +5,9 @@
 import unittest
 
 from acstore import interface
-from acstore.containers import interface as containers_interface
 from acstore.containers import manager
 
 from tests import test_lib
-
-
-class TestAttributeContainer(containers_interface.AttributeContainer):
-  """Attribute container for testing purposes.
-
-  Attributes:
-    attribute (str): attribute for testing purposes.
-  """
-  CONTAINER_TYPE = 'test_container'
-
-  SCHEMA = {'attribute': 'str'}
-
-  def __init__(self):
-    """Initializes an attribute container."""
-    super(TestAttributeContainer, self).__init__()
-    self.attribute = None
 
 
 class AttributeContainerStoreTest(test_lib.BaseTestCase):
@@ -34,7 +17,7 @@ class AttributeContainerStoreTest(test_lib.BaseTestCase):
 
   def testGetAttributeContainerNextSequenceNumber(self):
     """Tests the _GetAttributeContainerNextSequenceNumber function."""
-    attribute_container = TestAttributeContainer()
+    attribute_container = test_lib.TestAttributeContainer()
 
     test_store = interface.AttributeContainerStore()
 
@@ -48,7 +31,7 @@ class AttributeContainerStoreTest(test_lib.BaseTestCase):
 
   def testGetAttributeContainerSchema(self):
     """Tests the _GetAttributeContainerSchema function."""
-    attribute_container = TestAttributeContainer()
+    attribute_container = test_lib.TestAttributeContainer()
 
     test_store = interface.AttributeContainerStore()
 
@@ -57,16 +40,16 @@ class AttributeContainerStoreTest(test_lib.BaseTestCase):
     self.assertEqual(schema, {})
 
     manager.AttributeContainersManager.RegisterAttributeContainer(
-        TestAttributeContainer)
+        test_lib.TestAttributeContainer)
 
     try:
       schema = test_store._GetAttributeContainerSchema(
           attribute_container.CONTAINER_TYPE)
-      self.assertEqual(schema, TestAttributeContainer.SCHEMA)
+      self.assertEqual(schema, test_lib.TestAttributeContainer.SCHEMA)
 
     finally:
       manager.AttributeContainersManager.DeregisterAttributeContainer(
-          TestAttributeContainer)
+          test_lib.TestAttributeContainer)
 
   # TODO: add tests for _SetAttributeContainerNextSequenceNumber
 
