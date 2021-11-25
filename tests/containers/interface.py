@@ -6,10 +6,10 @@ import unittest
 
 from acstore.containers import interface
 
-from tests import test_lib as shared_test_lib
+from tests import test_lib
 
 
-class AttributeContainerIdentifierTest(shared_test_lib.BaseTestCase):
+class AttributeContainerIdentifierTest(test_lib.BaseTestCase):
   """Tests for the attribute container identifier."""
 
   def testCopyToString(self):
@@ -21,7 +21,7 @@ class AttributeContainerIdentifierTest(shared_test_lib.BaseTestCase):
     self.assertEqual(identifier_string, expected_identifier_string)
 
 
-class AttributeContainerTest(shared_test_lib.BaseTestCase):
+class AttributeContainerTest(test_lib.BaseTestCase):
   """Tests for the attribute container interface."""
 
   # pylint: disable=protected-access
