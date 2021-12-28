@@ -5,4 +5,4 @@ ACStore, or Attribute Container Storage, provides a stand-alone implementation
 to read and write plaso storage files.
 """
 
-__version__ = '20171013'
+__version__ = '20211228'
