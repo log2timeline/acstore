@@ -58,7 +58,7 @@ napoleon_include_special_with_doc = True
 # General information about the project.
 # pylint: disable=redefined-builtin
 project = 'ACStore'
-copyright = 'The ACStore Project Authors'
+copyright = 'The ACStore authors'
 version = acstore.__version__
 release = acstore.__version__
 
