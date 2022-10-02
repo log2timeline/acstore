@@ -20,7 +20,7 @@ class AttributeContainerIdentifier(object):
     Returns:
       str: unique identifier or None.
     """
-    return '{0:d}'.format(self._identifier)
+    return f'{self._identifier:d}'
 
 
 class AttributeContainer(object):
@@ -123,9 +123,7 @@ class AttributeContainer(object):
         elif isinstance(attribute_value, bytes):
           attribute_value = repr(attribute_value)
 
-        attribute_string = '{0:s}: {1!s}'.format(
-            attribute_name, attribute_value)
-        attributes.append(attribute_string)
+        attributes.append(f'{attribute_name:s}: {attribute_value!s}')
 
     return ', '.join(attributes)
 
