@@ -16,9 +16,9 @@ class AttributeContainerIdentifierTest(test_lib.BaseTestCase):
     """Tests the CopyToString function."""
     identifier = interface.AttributeContainerIdentifier()
 
-    expected_identifier_string = '{0:d}'.format(id(identifier))
+    expected_identifier = id(identifier)
     identifier_string = identifier.CopyToString()
-    self.assertEqual(identifier_string, expected_identifier_string)
+    self.assertEqual(identifier_string, f'{expected_identifier:d}')
 
 
 class AttributeContainerTest(test_lib.BaseTestCase):

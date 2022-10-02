@@ -23,8 +23,7 @@ class AttributeContainersManager(object):
     container_class = cls._attribute_container_classes.get(
         container_type, None)
     if not container_class:
-      raise ValueError('Unsupported container type: {0:s}'.format(
-          container_type))
+      raise ValueError(f'Unsupported container type: {container_type:s}')
 
     return container_class()
 
@@ -44,9 +43,9 @@ class AttributeContainersManager(object):
     """
     container_type = attribute_container_class.CONTAINER_TYPE.lower()
     if container_type not in cls._attribute_container_classes:
-      raise KeyError(
-          'Attribute container class not set for container type: '
-          '{0:s}.'.format(attribute_container_class.CONTAINER_TYPE))
+      raise KeyError((
+          f'Attribute container class not set for container type: '
+          f'{attribute_container_class.CONTAINER_TYPE:s}.'))
 
     del cls._attribute_container_classes[container_type]
 
@@ -76,8 +75,7 @@ class AttributeContainersManager(object):
     container_class = cls._attribute_container_classes.get(
         container_type, None)
     if not container_class:
-      raise ValueError('Unsupported container type: {0:s}'.format(
-          container_type))
+      raise ValueError(f'Unsupported container type: {container_type:s}')
 
     return getattr(container_class, 'SCHEMA', {})
 
@@ -98,8 +96,8 @@ class AttributeContainersManager(object):
     container_type = attribute_container_class.CONTAINER_TYPE.lower()
     if container_type in cls._attribute_container_classes:
       raise KeyError((
-          'Attribute container class already set for container type: '
-          '{0:s}.').format(attribute_container_class.CONTAINER_TYPE))
+          f'Attribute container class already set for container type: '
+          f'{attribute_container_class.CONTAINER_TYPE:s}.'))
 
     cls._attribute_container_classes[container_type] = attribute_container_class
 

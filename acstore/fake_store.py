@@ -36,7 +36,7 @@ class FakeAttributeContainerIdentifier(
     if self.sequence_number is None:
       return None
 
-    return '{0:d}'.format(self.sequence_number)
+    return f'{self.sequence_number:d}'
 
 
 class FakeAttributeContainerStore(interface.AttributeContainerStore):
@@ -82,17 +82,18 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     """
     identifier = container.GetIdentifier()
     if not isinstance(identifier, FakeAttributeContainerIdentifier):
-      raise IOError(
-          'Unsupported attribute container identifier type: {0!s}'.format(
-              type(identifier)))
+      identifier_type = type(identifier)
+      raise IOError((
+          f'Unsupported attribute container identifier type: '
+          f'{identifier_type!s}'))
 
     lookup_key = identifier.CopyToString()
 
     containers = self._attribute_containers.get(container.CONTAINER_TYPE, None)
     if containers is None or lookup_key not in containers:
-      raise IOError(
-          'Missing attribute container: {0:s} with identifier: {1:s}'.format(
-              container.CONTAINER_TYPE, lookup_key))
+      raise IOError((
+          f'Missing attribute container: {container.CONTAINER_TYPE:s} with '
+          f'identifier: {lookup_key:s}'))
 
     containers[lookup_key] = container
 
