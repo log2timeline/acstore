@@ -14,8 +14,19 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  # TODO: add tests for _RaiseIfNotReadable
-  # TODO: add tests for _RaiseIfNotWritable
+  def testRaiseIfNotReadable(self):
+    """Tests the _RaiseIfNotReadable function."""
+    test_store = fake_store.FakeAttributeContainerStore()
+
+    with self.assertRaises(IOError):
+      test_store._RaiseIfNotReadable()
+
+  def testRaiseIfNotWritable(self):
+    """Tests the _RaiseIfNotWritable function."""
+    test_store = fake_store.FakeAttributeContainerStore()
+
+    with self.assertRaises(IOError):
+      test_store._RaiseIfNotWritable()
 
   def testWriteExistingAttributeContainer(self):
     """Tests the _WriteExistingAttributeContainer function."""

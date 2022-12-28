@@ -10,35 +10,6 @@ from acstore import interface
 from acstore.containers import interface as containers_interface
 
 
-class FakeAttributeContainerIdentifier(
-    containers_interface.AttributeContainerIdentifier):
-  """Fake attribute container identifier.
-
-  Attributes:
-    sequence_number (int): sequence number of the attribute container.
-  """
-
-  def __init__(self, sequence_number):
-    """Initializes a fake attribute container identifier.
-
-    Args:
-      sequence_number (int): sequence number of the attribute container.
-    """
-    super(FakeAttributeContainerIdentifier, self).__init__()
-    self.sequence_number = sequence_number
-
-  def CopyToString(self):
-    """Copies the identifier to a string representation.
-
-    Returns:
-      str: unique identifier or None.
-    """
-    if self.sequence_number is None:
-      return None
-
-    return f'{self.sequence_number:d}'
-
-
 class FakeAttributeContainerStore(interface.AttributeContainerStore):
   """Fake (in-memory only) attribute container store."""
 
@@ -81,12 +52,6 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
           container does not exist.
     """
     identifier = container.GetIdentifier()
-    if not isinstance(identifier, FakeAttributeContainerIdentifier):
-      identifier_type = type(identifier)
-      raise IOError((
-          f'Unsupported attribute container identifier type: '
-          f'{identifier_type!s}'))
-
     lookup_key = identifier.CopyToString()
 
     containers = self._attribute_containers.get(container.CONTAINER_TYPE, None)
@@ -111,7 +76,8 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     next_sequence_number = self._GetAttributeContainerNextSequenceNumber(
         container.CONTAINER_TYPE)
 
-    identifier = FakeAttributeContainerIdentifier(next_sequence_number)
+    identifier = containers_interface.AttributeContainerIdentifier(
+        name=container.CONTAINER_TYPE, sequence_number=next_sequence_number)
     container.SetIdentifier(identifier)
 
     lookup_key = identifier.CopyToString()

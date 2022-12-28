@@ -14,11 +14,14 @@ class AttributeContainerIdentifierTest(test_lib.BaseTestCase):
 
   def testCopyToString(self):
     """Tests the CopyToString function."""
-    identifier = interface.AttributeContainerIdentifier()
+    sequence_number = id(self)
 
-    expected_identifier = id(identifier)
+    identifier = interface.AttributeContainerIdentifier(
+        name='test_container', sequence_number=sequence_number)
+
     identifier_string = identifier.CopyToString()
-    self.assertEqual(identifier_string, f'{expected_identifier:d}')
+    self.assertEqual(
+        identifier_string, f'test_container.{sequence_number:d}')
 
 
 class AttributeContainerTest(test_lib.BaseTestCase):
