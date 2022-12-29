@@ -5,7 +5,6 @@ import abc
 import collections
 
 from acstore.containers import manager as containers_manager
-# from acstore.serializer import json_serializer
 
 
 class AttributeContainerStore(object):
