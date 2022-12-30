@@ -77,7 +77,6 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
 
   Attributes:
     format_version (int): storage format version.
-    serialization_format (str): serialization format.
   """
 
   _FORMAT_VERSION = 20221023
@@ -152,8 +151,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           to see if it can be read and written to.
 
     Raises:
-      IOError: if the format version or the serializer format is not supported.
-      OSError: if the format version or the serializer format is not supported.
+      IOError: if the format version is not supported.
+      OSError: if the format version is not supported.
     """
     format_version = metadata_values.get('format_version', None)
 
