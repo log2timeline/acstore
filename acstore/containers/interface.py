@@ -60,6 +60,7 @@ class AttributeContainer(object):
   private class members are not to be serialized, with the exception of those
   defined in _SERIALIZABLE_PROTECTED_ATTRIBUTES.
   """
+
   CONTAINER_TYPE = None
 
   # Names of protected attributes, those with a leading underscore, that
@@ -147,7 +148,9 @@ class AttributeContainer(object):
         elif isinstance(attribute_value, bytes):
           attribute_value = repr(attribute_value)
 
-        attributes.append(f'{attribute_name:s}: {attribute_value!s}')
+        attribute_string = '{0:s}: {1!s}'.format(
+            attribute_name, attribute_value)
+        attributes.append(attribute_string)
 
     return ', '.join(attributes)
 
@@ -173,7 +176,17 @@ class AttributeContainer(object):
     """
     result = not expression
     if expression:
-      namespace = dict(self.GetAttributes())
+      namespace = {}
+      for attribute_name, attribute_value in self.__dict__.items():
+        # Not using startswith to improve performance.
+        if attribute_value is not None and (
+            attribute_name[0] != '_' or
+            attribute_name in self._SERIALIZABLE_PROTECTED_ATTRIBUTES):
+          if isinstance(attribute_value, AttributeContainerIdentifier):
+            attribute_value = attribute_value.CopyToString()
+
+          namespace[attribute_name] = attribute_value
+
       # Make sure __builtins__ contains an empty dictionary.
       namespace['__builtins__'] = {}
 
