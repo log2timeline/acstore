@@ -141,6 +141,24 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     self._attribute_container_cache[lookup_key] = attribute_container
     self._attribute_container_cache.move_to_end(lookup_key, last=False)
 
+  def _CacheAttributeContainerForWrite(
+      self, container_type, column_names, values):
+    """Caches an attribute container for writing.
+
+    Args:
+      container_type (str): attribute container type.
+      column_names (list[str]): names of the columns.
+      values (list[str]): values for each of the colums.
+    """
+    write_cache = self._write_cache.get(container_type, [column_names])
+    write_cache.append(values)
+
+    if len(write_cache) >= self._MAXIMUM_WRITE_CACHE_SIZE:
+      self._FlushWriteCache(container_type, write_cache)
+      write_cache = [column_names]
+
+    self._write_cache[container_type] = write_cache
+
   def _CheckStorageMetadata(self, metadata_values, check_readable_only=False):
     """Checks the storage metadata.
 
@@ -528,6 +546,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
   def _WriteExistingAttributeContainer(self, container):
     """Writes an existing attribute container to the store.
 
+    The table for the container type must exist.
+
     Args:
       container (AttributeContainer): attribute container.
 
@@ -624,7 +644,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
   def _WriteNewAttributeContainer(self, container):
     """Writes a new attribute container to the store.
 
-    The table for the container type must exist.
+    The table for the container type is created if needed.
 
     Args:
       container (AttributeContainer): attribute container.
@@ -673,15 +693,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       column_names.append(name)
       values.append(attribute_value)
 
-    write_cache = self._write_cache.get(
-        container.CONTAINER_TYPE, [column_names])
-    write_cache.append(values)
-
-    if len(write_cache) >= self._MAXIMUM_WRITE_CACHE_SIZE:
-      self._FlushWriteCache(container.CONTAINER_TYPE, write_cache)
-      write_cache = [column_names]
-
-    self._write_cache[container.CONTAINER_TYPE] = write_cache
+    self._CacheAttributeContainerForWrite(
+        container.CONTAINER_TYPE, column_names, values)
 
     self._CacheAttributeContainerByIndex(container, next_sequence_number - 1)
 
