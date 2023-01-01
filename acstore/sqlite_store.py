@@ -342,44 +342,25 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       self._FlushWriteCache(container_type, write_cache)
       del self._write_cache[container_type]
 
-    column_names_string = ', '.join(column_names)
+    if self._attribute_container_sequence_numbers[container_type]:
+      column_names_string = ', '.join(column_names)
 
-    query = (f'SELECT _identifier, {column_names_string:s} '
-             f'FROM {container_type:s}')
-    if filter_expression:
-      query = ' WHERE '.join([query, filter_expression])
-    if order_by:
-      query = ' ORDER BY '.join([query, order_by])
+      query = (f'SELECT _identifier, {column_names_string:s} '
+               f'FROM {container_type:s}')
+      if filter_expression:
+        query = ' WHERE '.join([query, filter_expression])
+      if order_by:
+        query = ' ORDER BY '.join([query, order_by])
 
-    # Use a local cursor to prevent another query interrupting the generator.
-    cursor = self._connection.cursor()
+      # Use a local cursor to prevent another query interrupting the generator.
+      cursor = self._connection.cursor()
 
-    try:
-      cursor.execute(query)
-    except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store for container: '
-          f'{container_type:s} with error: {exception!s}'))
-
-    if self._storage_profiler:
-      self._storage_profiler.StartTiming('get_containers')
-
-    try:
-      row = cursor.fetchone()
-
-    finally:
-      if self._storage_profiler:
-        self._storage_profiler.StopTiming('get_containers')
-
-    while row:
-      container = self._CreatetAttributeContainerFromRow(
-          container_type, column_names, row, 1)
-
-      identifier = containers_interface.AttributeContainerIdentifier(
-          name=container_type, sequence_number=row[0])
-      container.SetIdentifier(identifier)
-
-      yield container
+      try:
+        cursor.execute(query)
+      except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
+        raise IOError((
+            f'Unable to query attribute container store for container: '
+            f'{container_type:s} with error: {exception!s}'))
 
       if self._storage_profiler:
         self._storage_profiler.StartTiming('get_containers')
@@ -390,6 +371,26 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       finally:
         if self._storage_profiler:
           self._storage_profiler.StopTiming('get_containers')
+
+      while row:
+        container = self._CreatetAttributeContainerFromRow(
+            container_type, column_names, row, 1)
+
+        identifier = containers_interface.AttributeContainerIdentifier(
+            name=container_type, sequence_number=row[0])
+        container.SetIdentifier(identifier)
+
+        yield container
+
+        if self._storage_profiler:
+          self._storage_profiler.StartTiming('get_containers')
+
+        try:
+          row = cursor.fetchone()
+
+        finally:
+          if self._storage_profiler:
+            self._storage_profiler.StopTiming('get_containers')
 
   def _GetCachedAttributeContainer(self, container_type, index):
     """Retrieves a specific cached attribute container.
@@ -632,6 +633,10 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     next_sequence_number = self._GetAttributeContainerNextSequenceNumber(
         container.CONTAINER_TYPE)
 
+    if (next_sequence_number == 1 and
+        not self._HasTable(container.CONTAINER_TYPE)):
+      self._CreateAttributeContainerTable(container.CONTAINER_TYPE)
+
     identifier = containers_interface.AttributeContainerIdentifier(
         name=container.CONTAINER_TYPE, sequence_number=next_sequence_number)
     container.SetIdentifier(identifier)
@@ -780,6 +785,9 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       self._FlushWriteCache(container_type, write_cache)
       del self._write_cache[container_type]
 
+    if not self._attribute_container_sequence_numbers[container_type]:
+      return None
+
     schema = self._GetAttributeContainerSchema(container_type)
     if not schema:
       raise IOError(f'Unsupported attribute container type: {container_type:s}')
@@ -867,13 +875,13 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
-    if not self._HasTable(container_type):
-      return 0
-
     write_cache = self._write_cache.get(container_type, [])
     if len(write_cache) > 1:
       self._FlushWriteCache(container_type, write_cache)
       del self._write_cache[container_type]
+
+    if not self._HasTable(container_type):
+      return 0
 
     # Note that this is SQLite specific, and will give inaccurate results if
     # there are DELETE commands run on the table. acstore does not run any
@@ -984,9 +992,11 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
         # new format features that are not backwards compatible.
         self._UpdateStorageMetadataFormatVersion()
 
-      # TODO: create table on demand.
-      for container_type in self._containers_manager.GetContainerTypes():
-        if not self._HasTable(container_type):
-          self._CreateAttributeContainerTable(container_type)
-
       self._connection.commit()
+
+    # Initialize next_sequence_number based on the file contents so that
+    # AttributeContainerIdentifier points to the correct attribute container.
+    for container_type in self._containers_manager.GetContainerTypes():
+      next_sequence_number = self.GetNumberOfAttributeContainers(container_type)
+      self._SetAttributeContainerNextSequenceNumber(
+          container_type, next_sequence_number)

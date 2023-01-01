@@ -28,6 +28,14 @@ acstore.interface module
    :undoc-members:
    :show-inheritance:
 
+acstore.profilers module
+------------------------
+
+.. automodule:: acstore.profilers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 acstore.sqlite\_store module
 ----------------------------
 
