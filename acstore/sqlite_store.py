@@ -182,6 +182,17 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
 
     metadata_values['format_version'] = format_version
 
+  def _CommitWriteCache(self, container_type):
+    """Commits the write cache for a specific type of attribute container.
+
+    Args:
+      container_type (str): attribute container type.
+    """
+    write_cache = self._write_cache.get(container_type, [])
+    if len(write_cache) > 1:
+      self._FlushWriteCache(container_type, write_cache)
+      del self._write_cache[container_type]
+
   def _CreateAttributeContainerTable(self, container_type):
     """Creates a table for a specific attribute container type.
 
@@ -337,10 +348,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
-    write_cache = self._write_cache.get(container_type, [])
-    if len(write_cache) > 1:
-      self._FlushWriteCache(container_type, write_cache)
-      del self._write_cache[container_type]
+    self._CommitWriteCache(container_type)
 
     if self._attribute_container_sequence_numbers[container_type]:
       column_names_string = ', '.join(column_names)
@@ -529,17 +537,14 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
+    self._CommitWriteCache(container.CONTAINER_TYPE)
+
     identifier = container.GetIdentifier()
 
     schema = self._GetAttributeContainerSchema(container.CONTAINER_TYPE)
     if not schema:
       raise IOError(
           f'Unsupported attribute container type: {container.CONTAINER_TYPE:s}')
-
-    write_cache = self._write_cache.get(container.CONTAINER_TYPE, [])
-    if len(write_cache) > 1:
-      self._FlushWriteCache(container.CONTAINER_TYPE, write_cache)
-      del self._write_cache[container.CONTAINER_TYPE]
 
     column_names = []
     values = []
@@ -780,10 +785,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     if container:
       return container
 
-    write_cache = self._write_cache.get(container_type, [])
-    if len(write_cache) > 1:
-      self._FlushWriteCache(container_type, write_cache)
-      del self._write_cache[container_type]
+    self._CommitWriteCache(container_type)
 
     if not self._attribute_container_sequence_numbers[container_type]:
       return None
@@ -875,10 +877,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
-    write_cache = self._write_cache.get(container_type, [])
-    if len(write_cache) > 1:
-      self._FlushWriteCache(container_type, write_cache)
-      del self._write_cache[container_type]
+    self._CommitWriteCache(container_type)
 
     if not self._HasTable(container_type):
       return 0
