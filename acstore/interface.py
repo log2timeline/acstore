@@ -12,7 +12,6 @@ class AttributeContainerStore(object):
 
   Attributes:
     format_version (int): storage format version.
-    serialization_format (str): serialization format.
   """
 
   def __init__(self):
@@ -23,7 +22,6 @@ class AttributeContainerStore(object):
     self._storage_profiler = None
 
     self.format_version = None
-    self.serialization_format = None
 
   def _GetAttributeContainerNextSequenceNumber(self, container_type):
     """Retrieves the next sequence number of an attribute container.

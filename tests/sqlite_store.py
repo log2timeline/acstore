@@ -91,6 +91,9 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store.Open(path=test_path, read_only=False)
 
       try:
+        test_store._CreateAttributeContainerTable(
+            attribute_container.CONTAINER_TYPE)
+
         with self.assertRaises(IOError):
           test_store._CreateAttributeContainerTable(
               attribute_container.CONTAINER_TYPE)
@@ -137,9 +140,9 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
             filter_expression=filter_expression))
         self.assertEqual(len(containers), 0)
 
-        with self.assertRaises(IOError):
-          list(test_store._GetAttributeContainersWithFilter(
-              'bogus', column_names=column_names))
+        containers = list(test_store._GetAttributeContainersWithFilter(
+            'bogus', column_names=column_names))
+        self.assertEqual(len(containers), 0)
 
       finally:
         test_store.Close()
@@ -169,6 +172,8 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store.Open(path=test_path, read_only=False)
 
       try:
+        test_store._CreateAttributeContainerTable('test_container')
+
         result = test_store._HasTable('test_container')
         self.assertTrue(result)
 
@@ -326,8 +331,8 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
             attribute_container.CONTAINER_TYPE, 0)
         self.assertIsNotNone(container)
 
-        with self.assertRaises(IOError):
-          test_store.GetAttributeContainerByIndex('bogus', 0)
+        container = test_store.GetAttributeContainerByIndex('bogus', 0)
+        self.assertIsNone(container)
 
       finally:
         test_store.Close()
