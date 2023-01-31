@@ -186,17 +186,20 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
         format_version < self._APPEND_COMPATIBLE_FORMAT_VERSION):
       raise IOError((
           f'Format version: {format_version:d} is too old and can no longer '
-          f'be written.'))
+          f'be written. (minimum version: '
+          f'{self._APPEND_COMPATIBLE_FORMAT_VERSION})'))
 
     if format_version < self._READ_COMPATIBLE_FORMAT_VERSION:
       raise IOError((
           f'Format version: {format_version:d} is too old and can no longer '
-          f'be read.'))
+          f'be read. (minimum version: '
+          f'{self._READ_COMPATIBLE_FORMAT_VERSION})'))
 
     if format_version > self._FORMAT_VERSION:
       raise IOError((
           f'Format version: {format_version:d} is too new and not yet '
-          f'supported.'))
+          f'supported. (minimum version: '
+          f'{self._FORMAT_VERSION})'))
 
     metadata_values['format_version'] = format_version
 
