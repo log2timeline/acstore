@@ -304,6 +304,9 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       raise IOError(
           f'Unsupported serialization format: {serialization_format!s}')
 
+    # Ensure format_version is an integer.
+    metadata_values['format_version'] = format_version
+
   def _CommitWriteCache(self, container_type):
     """Commits the write cache for a specific type of attribute container.
 
