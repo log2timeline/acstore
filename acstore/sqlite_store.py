@@ -4,6 +4,7 @@
 import ast
 import collections
 import itertools
+import json
 import os
 import pathlib
 import sqlite3
@@ -72,14 +73,108 @@ def PythonAST2SQL(ast_node):
   raise TypeError(ast_node)
 
 
+class SQLiteSchemaHelper(object):
+  """SQLite schema helper."""
+
+  _MAPPINGS = {
+      'AttributeContainerIdentifier': 'TEXT',
+      'List[str]': 'TEXT',
+      'bool': 'INTEGER',
+      'int': 'INTEGER',
+      'str': 'TEXT',
+      'timestamp': 'BIGINT'}
+
+  def __init__(self):
+    """Initializes a SQLite schema helper."""
+    super(SQLiteSchemaHelper, self).__init__()
+    self._mappings = dict(self._MAPPINGS)
+
+  def GetStorageDataType(self, data_type):
+    """Retrieves the storage data type.
+
+    Args:
+      data_type (str): schema data type.
+
+    Returns:
+      str: corresponding SQLite data type.
+    """
+    return self._mappings.get(data_type, 'TEXT')
+
+  def DeserializeValue(self, data_type, value):
+    """Deserializes a value.
+
+    Args:
+      data_type (str): schema data type.
+      value (object): SQLite value.
+
+    Returns:
+      object: runtime value.
+
+    Raises:
+      IOError: if the schema data type is not supported.
+      OSError: if the schema data type is not supported.
+    """
+    if data_type not in self._mappings:
+      raise IOError(f'Unsupported data type: {data_type:s}')
+
+    if value is not None:
+      if data_type == 'AttributeContainerIdentifier':
+        identifier = containers_interface.AttributeContainerIdentifier()
+        identifier.CopyFromString(value)
+        return identifier
+
+      if data_type == 'List[str]':
+        return json.loads(value)
+
+      if data_type == 'bool':
+        return bool(value)
+
+    return value
+
+  def SerializeValue(self, data_type, value):
+    """Serializes a value.
+
+    Args:
+      data_type (str): schema data type.
+      value (object): runtime value.
+
+    Returns:
+      object: SQLite value.
+
+    Raises:
+      IOError: if the schema data type is not supported.
+      OSError: if the schema data type is not supported.
+    """
+    if data_type not in self._mappings:
+      raise IOError(f'Unsupported data type: {data_type:s}')
+
+    if value is not None:
+      if data_type == 'AttributeContainerIdentifier' and isinstance(
+          value, containers_interface.AttributeContainerIdentifier):
+        return value.CopyToString()
+
+      if data_type == 'List[str]':
+        # JSON will not serialize certain runtime types like set, therefore
+        # these are cast to list first.
+        if not isinstance(value, list):
+          value = list(value)
+        return json.dumps(value)
+
+      if data_type == 'bool':
+        return int(value)
+
+    return value
+
+
 class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
   """SQLite-based attribute container store.
 
   Attributes:
     format_version (int): storage format version.
+    serialization_format (str): serialization format.
   """
 
-  _FORMAT_VERSION = 20221023
+  _FORMAT_VERSION = 20230312
 
   # The earliest format version, stored in-file, that this class
   # is able to append (write).
@@ -93,6 +188,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
   # is able to read.
   _READ_COMPATIBLE_FORMAT_VERSION = 20221023
 
+  # TODO: kept for backwards compatibility.
   _CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS = {
       'AttributeContainerIdentifier': 'TEXT',
       'bool': 'INTEGER',
@@ -123,9 +219,11 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     self._cursor = None
     self._is_open = False
     self._read_only = True
+    self._schema_helper = SQLiteSchemaHelper()
     self._write_cache = {}
 
     self.format_version = self._FORMAT_VERSION
+    self.serialization_format = 'json'
 
   def _CacheAttributeContainerByIndex(self, attribute_container, index):
     """Caches a specific attribute container.
@@ -169,8 +267,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           to see if it can be read and written to.
 
     Raises:
-      IOError: if the format version is not supported.
-      OSError: if the format version is not supported.
+      IOError: if the storage metadata is not supported.
+      OSError: if the storage metadata is not supported.
     """
     format_version = metadata_values.get('format_version', None)
 
@@ -201,7 +299,10 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           f'supported, minimum supported version: '
           f'{self._FORMAT_VERSION:d}.'))
 
-    metadata_values['format_version'] = format_version
+    serialization_format = metadata_values.get('serialization_format', None)
+    if serialization_format != 'json':
+      raise IOError(
+          f'Unsupported serialization format: {serialization_format!s}')
 
   def _CommitWriteCache(self, container_type):
     """Commits the write cache for a specific type of attribute container.
@@ -232,10 +333,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
 
     column_definitions = ['_identifier INTEGER PRIMARY KEY AUTOINCREMENT']
 
-    schema_to_sqlite_type_mappings = (
-          self._CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS)
     for name, data_type in sorted(schema.items()):
-      data_type = schema_to_sqlite_type_mappings.get(data_type, 'TEXT')
+      data_type = self._schema_helper.GetStorageDataType(data_type)
       column_definitions.append(f'{name:s} {data_type:s}')
 
     column_definitions = ', '.join(column_definitions)
@@ -275,23 +374,16 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
         container_type)
 
     for column_index, name in enumerate(column_names):
-      attribute_value = row[first_column_index + column_index]
-      if attribute_value is None:
-        continue
-
-      data_type = schema[name]
-      if data_type == 'AttributeContainerIdentifier':
-        identifier = containers_interface.AttributeContainerIdentifier()
-        identifier.CopyFromString(attribute_value)
-        attribute_value = identifier
-
-      elif data_type == 'bool':
-        attribute_value = bool(attribute_value)
-
-      elif data_type not in self._CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS:
-        raise IOError((
-            f'Unsupported attribute container type: {container_type:s} '
-            f'attribute: {name:s} data type: {data_type:s}'))
+      row_value = row[first_column_index + column_index]
+      if row_value is not None:
+        data_type = schema[name]
+        try:
+          attribute_value = self._schema_helper.DeserializeValue(
+              data_type, row_value)
+        except IOError:
+          raise IOError((
+              f'Unsupported attribute container type: {container_type:s} '
+              f'attribute: {name:s} data type: {data_type:s}'))
 
       setattr(container, name, attribute_value)
 
@@ -506,6 +598,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
         metadata_values, check_readable_only=check_readable_only)
 
     self.format_version = metadata_values['format_version']
+    self.serialization_format = metadata_values['serialization_format']
 
   def _ReadMetadata(self):
     """Reads metadata.
@@ -573,22 +666,17 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     values = []
     for name, data_type in sorted(schema.items()):
       attribute_value = getattr(container, name, None)
-      if attribute_value is not None:
-        if data_type == 'AttributeContainerIdentifier' and isinstance(
-            attribute_value, containers_interface.AttributeContainerIdentifier):
-          attribute_value = attribute_value.CopyToString()
-
-        elif data_type == 'bool':
-          attribute_value = int(attribute_value)
-
-        elif data_type not in self._CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS:
-          raise IOError((
-              f'Unsupported attribute container type: '
-              f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
-              f'{data_type:s}'))
+      try:
+        row_value = self._schema_helper.SerializeValue(
+            data_type, attribute_value)
+      except IOError:
+        raise IOError((
+            f'Unsupported attribute container type: '
+            f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
+            f'{data_type:s}'))
 
       column_names.append(f'{name:s} = ?')
-      values.append(attribute_value)
+      values.append(row_value)
 
     column_names_string = ', '.join(column_names)
 
@@ -625,6 +713,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           f'{exception!s}'))
 
     self._WriteMetadataValue('format_version', f'{self._FORMAT_VERSION:d}')
+    self._WriteMetadataValue('serialization_format', self.serialization_format)
 
   def _WriteMetadataValue(self, key, value):
     """Writes a metadata value.
@@ -675,29 +764,23 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           f'Unsupported attribute container type: {container.CONTAINER_TYPE:s}')
 
     column_names = []
-    values = []
+    row_values = []
     for name, data_type in sorted(schema.items()):
       attribute_value = getattr(container, name, None)
-      if attribute_value is not None:
-        if data_type == 'AttributeContainerIdentifier' and isinstance(
-            attribute_value,
-            containers_interface.AttributeContainerIdentifier):
-          attribute_value = attribute_value.CopyToString()
-
-        elif data_type == 'bool':
-          attribute_value = int(attribute_value)
-
-        elif data_type not in self._CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS:
-          raise IOError((
-              f'Unsupported attribute container type: '
-              f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
-              f'{data_type:s}'))
+      try:
+        row_value = self._schema_helper.SerializeValue(
+            data_type, attribute_value)
+      except IOError:
+        raise IOError((
+            f'Unsupported attribute container type: '
+            f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
+            f'{data_type:s}'))
 
       column_names.append(name)
-      values.append(attribute_value)
+      row_values.append(row_value)
 
     self._CacheAttributeContainerForWrite(
-        container.CONTAINER_TYPE, column_names, values)
+        container.CONTAINER_TYPE, column_names, row_values)
 
     self._CacheAttributeContainerByIndex(container, next_sequence_number - 1)
 

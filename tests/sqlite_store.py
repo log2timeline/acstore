@@ -67,7 +67,8 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store = sqlite_store.SQLiteAttributeContainerStore()
 
       metadata_values = {
-          'format_version': '{0:d}'.format(test_store._FORMAT_VERSION)}
+          'format_version': f'{test_store._FORMAT_VERSION:d}',
+          'serialization_format': 'json'}
       test_store._CheckStorageMetadata(metadata_values)
 
       metadata_values['format_version'] = 'bogus'
@@ -78,8 +79,12 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       with self.assertRaises(IOError):
         test_store._CheckStorageMetadata(metadata_values)
 
-      metadata_values['format_version'] = '{0:d}'.format(
-          test_store._FORMAT_VERSION)
+      metadata_values['format_version'] = f'{test_store._FORMAT_VERSION:d}'
+      metadata_values['serialization_format'] = 'bogus'
+      with self.assertRaises(IOError):
+        test_store._CheckStorageMetadata(metadata_values)
+
+      metadata_values['serialization_format'] = 'json'
 
   def testCreateAttributeContainerTable(self):
     """Tests the _CreateAttributeContainerTable function."""
@@ -398,7 +403,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
 
         # Test for a supported container type that does not have a table
         # present in the storage file.
-        query = 'DROP TABLE {0:s}'.format(attribute_container.CONTAINER_TYPE)
+        query = f'DROP TABLE {attribute_container.CONTAINER_TYPE:s}'
         test_store._cursor.execute(query)
         number_of_containers = test_store.GetNumberOfAttributeContainers(
             attribute_container.CONTAINER_TYPE)
