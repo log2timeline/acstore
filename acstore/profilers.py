@@ -98,15 +98,13 @@ class StorageProfiler(object):
       sample_time = time.time()
       processing_time = 0.0
 
-    sample = '{0:f}\t{1:s}\t{2:s}\t{3:s}\t{4:f}\t{5:d}\t{6:d}\n'.format(
-        sample_time, profile_name, operation, description,
-        processing_time, data_size, compressed_data_size)
-    self._WritesString(sample)
+    self._WritesString((
+        f'{sample_time:f}\t{profile_name:s}\t{operation:s}\t{description:s}\t'
+        f'{processing_time:f}\t{data_size:d}\t{compressed_data_size:d}\n'))
 
   def Start(self):
     """Starts the profiler."""
-    filename = '{0:s}-{1:s}.csv.gz'.format(
-        self._FILENAME_PREFIX, self._identifier)
+    filename = f'{self._FILENAME_PREFIX:s}-{self._identifier:s}.csv.gz'
     if self._path:
       filename = os.path.join(self._path, filename)
 

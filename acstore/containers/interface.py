@@ -41,7 +41,7 @@ class AttributeContainerIdentifier(object):
       str: unique identifier or None.
     """
     if self.name is not None and self.sequence_number is not None:
-      return '{0:s}.{1:d}'.format(self.name, self.sequence_number)
+      return f'{self.name:s}.{self.sequence_number:d}'
 
     return None
 
@@ -148,9 +148,7 @@ class AttributeContainer(object):
         elif isinstance(attribute_value, bytes):
           attribute_value = repr(attribute_value)
 
-        attribute_string = '{0:s}: {1!s}'.format(
-            attribute_name, attribute_value)
-        attributes.append(attribute_string)
+        attributes.append(f'{attribute_name:s}: {attribute_value!s}')
 
     return ', '.join(attributes)
 
