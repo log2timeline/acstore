@@ -1,0 +1,8 @@
+# YAML-based attribute container definitions file.
+---
+name: 'windows_eventlog_message_file'
+attributes:
+- name: 'path'
+  type: 'str'
+- name: 'windows_path'
+  type: 'str'
