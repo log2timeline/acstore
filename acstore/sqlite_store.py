@@ -9,8 +9,9 @@ import os
 import pathlib
 import sqlite3
 
-from acstore.containers import interface as containers_interface
 from acstore import interface
+from acstore.containers import interface as containers_interface
+from acstore.helpers import schema as schema_helper
 
 
 def PythonAST2SQL(ast_node):
@@ -77,17 +78,10 @@ class SQLiteSchemaHelper(object):
   """SQLite schema helper."""
 
   _MAPPINGS = {
-      'AttributeContainerIdentifier': 'TEXT',
-      'List[str]': 'TEXT',
       'bool': 'INTEGER',
       'int': 'INTEGER',
       'str': 'TEXT',
       'timestamp': 'BIGINT'}
-
-  def __init__(self):
-    """Initializes a SQLite schema helper."""
-    super(SQLiteSchemaHelper, self).__init__()
-    self._mappings = dict(self._MAPPINGS)
 
   def GetStorageDataType(self, data_type):
     """Retrieves the storage data type.
@@ -98,7 +92,7 @@ class SQLiteSchemaHelper(object):
     Returns:
       str: corresponding SQLite data type.
     """
-    return self._mappings.get(data_type, 'TEXT')
+    return self._MAPPINGS.get(data_type, 'TEXT')
 
   def DeserializeValue(self, data_type, value):
     """Deserializes a value.
@@ -114,20 +108,20 @@ class SQLiteSchemaHelper(object):
       IOError: if the schema data type is not supported.
       OSError: if the schema data type is not supported.
     """
-    if data_type not in self._mappings:
+    if not schema_helper.SchemaHelper.HasDataType(data_type):
       raise IOError(f'Unsupported data type: {data_type:s}')
 
     if value is not None:
       if data_type == 'AttributeContainerIdentifier':
         identifier = containers_interface.AttributeContainerIdentifier()
         identifier.CopyFromString(value)
-        return identifier
+        value = identifier
 
-      if data_type == 'List[str]':
-        return json.loads(value)
+      elif data_type == 'bool':
+        value = bool(value)
 
-      if data_type == 'bool':
-        return bool(value)
+      elif data_type not in self._MAPPINGS:
+        value = json.loads(value)
 
     return value
 
@@ -145,23 +139,23 @@ class SQLiteSchemaHelper(object):
       IOError: if the schema data type is not supported.
       OSError: if the schema data type is not supported.
     """
-    if data_type not in self._mappings:
+    if not schema_helper.SchemaHelper.HasDataType(data_type):
       raise IOError(f'Unsupported data type: {data_type:s}')
 
     if value is not None:
       if data_type == 'AttributeContainerIdentifier' and isinstance(
           value, containers_interface.AttributeContainerIdentifier):
-        return value.CopyToString()
+        value = value.CopyToString()
 
-      if data_type == 'List[str]':
+      elif data_type == 'bool':
+        value = int(value)
+
+      elif data_type not in self._MAPPINGS:
         # JSON will not serialize certain runtime types like set, therefore
         # these are cast to list first.
-        if not isinstance(value, list):
+        if isinstance(value, set):
           value = list(value)
         return json.dumps(value)
-
-      if data_type == 'bool':
-        return int(value)
 
     return value
 
