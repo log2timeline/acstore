@@ -34,6 +34,73 @@ class _TestSQLiteAttributeContainerStoreV20221023(
 # TODO add tests for PythonAST2SQL.
 
 
+class SQLiteSchemaHelperTest(test_lib.BaseTestCase):
+  """Tests for the SQLite schema helper."""
+
+  # pylint: disable=protected-access
+
+  def testGetStorageDataType(self):
+    """Tests the GetStorageDataType function."""
+    schema_helper = sqlite_store.SQLiteSchemaHelper()
+
+    data_type = schema_helper.GetStorageDataType('bool')
+    self.assertEqual(data_type, 'INTEGER')
+
+    data_type = schema_helper.GetStorageDataType('int')
+    self.assertEqual(data_type, 'INTEGER')
+
+    data_type = schema_helper.GetStorageDataType('str')
+    self.assertEqual(data_type, 'TEXT')
+
+    data_type = schema_helper.GetStorageDataType('timestamp')
+    self.assertEqual(data_type, 'BIGINT')
+
+    data_type = schema_helper.GetStorageDataType('AttributeContainerIdentifier')
+    self.assertEqual(data_type, 'TEXT')
+
+  def testDeserializeValue(self):
+    """Tests the DeserializeValue function."""
+    schema_helper = sqlite_store.SQLiteSchemaHelper()
+
+    value = schema_helper.DeserializeValue('bool', 0)
+    self.assertFalse(value)
+
+    value = schema_helper.DeserializeValue('bool', 1)
+    self.assertTrue(value)
+
+    value = schema_helper.DeserializeValue('int', 1)
+    self.assertEqual(value, 1)
+
+    value = schema_helper.DeserializeValue('str', 'one')
+    self.assertEqual(value, 'one')
+
+    value = schema_helper.DeserializeValue('timestamp', 1)
+    self.assertEqual(value, 1)
+
+    # TODO: add test for AttributeContainerIdentifier
+
+  def testSerializeValue(self):
+    """Tests the SerializeValue function."""
+    schema_helper = sqlite_store.SQLiteSchemaHelper()
+
+    value = schema_helper.SerializeValue('bool', False)
+    self.assertEqual(value, 0)
+
+    value = schema_helper.SerializeValue('bool', True)
+    self.assertEqual(value, 1)
+
+    value = schema_helper.SerializeValue('int', 1)
+    self.assertEqual(value, 1)
+
+    value = schema_helper.SerializeValue('str', 'one')
+    self.assertEqual(value, 'one')
+
+    value = schema_helper.SerializeValue('timestamp', 1)
+    self.assertEqual(value, 1)
+
+    # TODO: add test for AttributeContainerIdentifier
+
+
 class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
   """Tests for the SQLite-based storage file object."""
 
