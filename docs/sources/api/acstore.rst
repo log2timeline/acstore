@@ -8,9 +8,18 @@ Subpackages
    :maxdepth: 4
 
    acstore.containers
+   acstore.helpers
 
 Submodules
 ----------
+
+acstore.errors module
+---------------------
+
+.. automodule:: acstore.errors
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 acstore.fake\_store module
 --------------------------
