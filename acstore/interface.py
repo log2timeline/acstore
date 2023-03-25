@@ -7,6 +7,32 @@ import collections
 from acstore.containers import manager as containers_manager
 
 
+class AttributeSerializer(object):
+  """Attribute serializer."""
+
+  @abc.abstractmethod
+  def DeserializeValue(self, value):
+    """Deserializes a value.
+
+    Args:
+      value (object): serialized value.
+
+    Returns:
+      object: runtime value.
+    """
+
+  @abc.abstractmethod
+  def SerializeValue(self, value):
+    """Serializes a value.
+
+    Args:
+      value (object): runtime value.
+
+    Returns:
+      object: serialized value.
+    """
+
+
 class AttributeContainerStore(object):
   """Interface of an attribute container store.
 

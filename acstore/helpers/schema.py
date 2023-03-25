@@ -5,9 +5,9 @@
 class SchemaHelper(object):
   """Schema helper."""
 
+  # Data types and corresponding attribute serializers per method.
   _data_types = {
       'AttributeContainerIdentifier': None,
-      'List[str]': None,
       'bool': None,
       'int': None,
       'str': None,
@@ -18,7 +18,7 @@ class SchemaHelper(object):
     """Deregisters an data type.
 
     Args:
-      data_type (type): data type.
+      data_type (str): data type.
 
     Raises:
       KeyError: if the data type is not set.
@@ -29,11 +29,25 @@ class SchemaHelper(object):
     del cls._data_types[data_type]
 
   @classmethod
+  def GetAttributeSerializer(cls, data_type, serialization_method):
+    """Retrieves a specific attribute serializer.
+
+    Args:
+      data_type (str): data type.
+      serialization_method (str): serialization method.
+
+    Returns:
+      AttributeSerializer: attribute serializer or None if not available.
+    """
+    serializers = cls._data_types.get(data_type, None) or {}
+    return serializers.get(serialization_method, None)
+
+  @classmethod
   def HasDataType(cls, data_type):
     """Determines is a specific data type is supported by the schema.
 
     Args:
-      data_type (type): data type.
+      data_type (str): data type.
 
     Returns:
       bool: True if the data type is supported, or False otherwise.
@@ -41,11 +55,13 @@ class SchemaHelper(object):
     return data_type in cls._data_types
 
   @classmethod
-  def RegisterDataType(cls, data_type):
+  def RegisterDataType(cls, data_type, serializers):
     """Registers a data type.
 
     Args:
-      data_type (type): data type.
+      data_type (str): data type.
+      serializers (dict[str, AttributeSerializer]): attribute serializers per
+          method.
 
     Raises:
       KeyError: if the data type is already set.
@@ -53,17 +69,18 @@ class SchemaHelper(object):
     if data_type in cls._data_types:
       raise KeyError(f'Data type: {data_type:s} already set.')
 
-    cls._data_types[data_type] = data_type
+    cls._data_types[data_type] = serializers
 
   @classmethod
   def RegisterDataTypes(cls, data_types):
     """Registers data types.
 
     Args:
-      data_types (list[type]): data types.
+      data_types (dict[str: dict[str, AttributeSerializer]]): attribute
+          serializers with method per data types.
 
     Raises:
       KeyError: if the data type is already set.
     """
-    for data_type in data_types:
-      cls.RegisterDataType(data_type)
+    for data_type, serializers in data_types.items():
+      cls.RegisterDataType(data_type, serializers)
