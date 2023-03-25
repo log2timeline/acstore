@@ -22,18 +22,37 @@ class SchemaHelperTest(shared_test_lib.BaseTestCase):
     result = schema.SchemaHelper.HasDataType('test')
     self.assertFalse(result)
 
-  def testDataTypeRegistration(self):
-    """Tests the Register and DeregisterDataType functions."""
+  def testRegisterDataType(self):
+    """Tests the RegisterDataType function."""
     number_of_data_types = len(schema.SchemaHelper._data_types)
 
-    schema.SchemaHelper.RegisterDataType('test')
+    schema.SchemaHelper.RegisterDataType('test', {'json': None})
 
     try:
       self.assertEqual(
           len(schema.SchemaHelper._data_types), number_of_data_types + 1)
 
       with self.assertRaises(KeyError):
-        schema.SchemaHelper.RegisterDataType('test')
+        schema.SchemaHelper.RegisterDataType('test', {'json': None})
+
+    finally:
+      schema.SchemaHelper.DeregisterDataType('test')
+
+    self.assertEqual(
+        len(schema.SchemaHelper._data_types), number_of_data_types)
+
+  def testRegisterDataTypes(self):
+    """Tests the RegisterDataTypes function."""
+    number_of_data_types = len(schema.SchemaHelper._data_types)
+
+    schema.SchemaHelper.RegisterDataTypes({'test': {'json': None}})
+
+    try:
+      self.assertEqual(
+          len(schema.SchemaHelper._data_types), number_of_data_types + 1)
+
+      with self.assertRaises(KeyError):
+        schema.SchemaHelper.RegisterDataTypes({'test': {'json': None}})
 
     finally:
       schema.SchemaHelper.DeregisterDataType('test')

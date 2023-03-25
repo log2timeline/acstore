@@ -4,7 +4,6 @@
 import ast
 import collections
 import itertools
-import json
 import os
 import pathlib
 import sqlite3
@@ -99,7 +98,7 @@ class SQLiteSchemaHelper(object):
 
     Args:
       data_type (str): schema data type.
-      value (object): SQLite value.
+      value (object): serialized value.
 
     Returns:
       object: runtime value.
@@ -121,7 +120,9 @@ class SQLiteSchemaHelper(object):
         value = bool(value)
 
       elif data_type not in self._MAPPINGS:
-        value = json.loads(value)
+        serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+            data_type, 'json')
+        value = serializer.DeserializeValue(value)
 
     return value
 
@@ -133,7 +134,7 @@ class SQLiteSchemaHelper(object):
       value (object): runtime value.
 
     Returns:
-      object: SQLite value.
+      object: serialized value.
 
     Raises:
       IOError: if the schema data type is not supported.
@@ -151,11 +152,15 @@ class SQLiteSchemaHelper(object):
         value = int(value)
 
       elif data_type not in self._MAPPINGS:
+        serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+            data_type, 'json')
+
         # JSON will not serialize certain runtime types like set, therefore
         # these are cast to list first.
         if isinstance(value, set):
           value = list(value)
-        return json.dumps(value)
+
+        return serializer.SerializeValue(value)
 
     return value
 
