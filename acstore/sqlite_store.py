@@ -387,7 +387,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
               f'Unsupported attribute container type: {container_type:s} '
               f'attribute: {name:s} data type: {data_type:s}'))
 
-      setattr(container, name, attribute_value)
+        setattr(container, name, attribute_value)
 
     return container
 
