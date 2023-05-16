@@ -245,7 +245,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     Args:
       container_type (str): attribute container type.
       column_names (list[str]): names of the columns.
-      values (list[str]): values for each of the colums.
+      values (list[str]): values for each of the columns.
     """
     write_cache = self._write_cache.get(container_type, [column_names])
     write_cache.append(values)
@@ -349,7 +349,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           f'Unable to query attribute container store with error: '
           f'{exception!s}'))
 
-  def _CreatetAttributeContainerFromRow(
+  def _CreateAttributeContainerFromRow(
       self, container_type, column_names, row, first_column_index):
     """Creates an attribute container of a row in the database.
 
@@ -496,7 +496,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
           self._storage_profiler.StopTiming('get_containers')
 
       while row:
-        container = self._CreatetAttributeContainerFromRow(
+        container = self._CreateAttributeContainerFromRow(
             container_type, column_names, row, 1)
 
         identifier = containers_interface.AttributeContainerIdentifier(
@@ -923,7 +923,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
     if not row:
       return None
 
-    container = self._CreatetAttributeContainerFromRow(
+    container = self._CreateAttributeContainerFromRow(
         container_type, column_names, row, 0)
 
     identifier = containers_interface.AttributeContainerIdentifier(

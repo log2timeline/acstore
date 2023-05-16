@@ -49,14 +49,14 @@ class AttributeContainerIdentifier(object):
 class AttributeContainer(object):
   """The attribute container interface.
 
-  This is the the base class for those object that exists primarily as
+  This is the base class for those object that exists primarily as
   a container of attributes with basic accessors and mutators.
 
   The CONTAINER_TYPE class attribute contains a string that identifies
   the container type, for example the container type "event" identifiers
   an event object.
 
-  Attributes are public class members of an serializable type. Protected and
+  Attributes are public class members of a serializable type. Protected and
   private class members are not to be serialized, with the exception of those
   defined in _SERIALIZABLE_PROTECTED_ATTRIBUTES.
   """
@@ -158,7 +158,7 @@ class AttributeContainer(object):
     The identifier is a storage specific value that should not be serialized.
 
     Returns:
-      AttributeContainerIdentifier: an unique identifier for the container.
+      AttributeContainerIdentifier: a unique identifier for the container.
     """
     return self._identifier
 

@@ -15,7 +15,7 @@ class SchemaHelper(object):
 
   @classmethod
   def DeregisterDataType(cls, data_type):
-    """Deregisters an data type.
+    """Deregisters a data type.
 
     Args:
       data_type (str): data type.
