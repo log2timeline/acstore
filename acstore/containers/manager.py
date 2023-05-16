@@ -81,7 +81,7 @@ class AttributeContainersManager(object):
 
   @classmethod
   def RegisterAttributeContainer(cls, attribute_container_class):
-    """Registers a attribute container class.
+    """Registers an attribute container class.
 
     The attribute container classes are identified based on their lower case
     container type.

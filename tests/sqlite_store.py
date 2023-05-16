@@ -173,7 +173,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       finally:
         test_store.Close()
 
-  # TODO: add tests for _CreatetAttributeContainerFromRow
+  # TODO: add tests for _CreateAttributeContainerFromRow
   # TODO: add tests for _Flush
   # TODO: add tests for _FlushWriteCache
 
