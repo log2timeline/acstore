@@ -78,7 +78,7 @@ class DependencyDefinitionReader(object):
       value_name (str): name of the value.
 
     Returns:
-      object: configuration value or None if the value does not exist.
+      object: configuration value or None if the value does not exists.
     """
     try:
       return config_parser.get(section_name, value_name)
