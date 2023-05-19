@@ -56,8 +56,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     self.assertEqual(attribute_names, expected_attribute_names)
 
-    attribute_container._SERIALIZABLE_PROTECTED_ATTRIBUTES = [
-        '_protected_attribute']
+    setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
+        '_protected_attribute'])
 
     expected_attribute_names = [
         '_protected_attribute', 'attribute_name', 'attribute_value']
@@ -81,8 +81,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     self.assertEqual(attributes, expected_attributes)
 
-    attribute_container._SERIALIZABLE_PROTECTED_ATTRIBUTES = [
-        '_protected_attribute']
+    setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
+        '_protected_attribute'])
 
     expected_attributes = [
         ('_protected_attribute', 'protected'),
@@ -110,8 +110,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     attribute_container.attribute_value = 'attribute_value'
 
-    attribute_container._SERIALIZABLE_PROTECTED_ATTRIBUTES = [
-        '_protected_attribute']
+    setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
+        '_protected_attribute'])
 
     attribute_values_hash2 = attribute_container.GetAttributeValuesHash()
 
@@ -134,8 +134,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     attribute_container.attribute_value = 'attribute_value'
 
-    attribute_container._SERIALIZABLE_PROTECTED_ATTRIBUTES = [
-        '_protected_attribute']
+    setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
+        '_protected_attribute'])
 
     attribute_values_string2 = attribute_container.GetAttributeValuesString()
 

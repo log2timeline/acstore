@@ -35,8 +35,8 @@ class StorageProfilerTest(test_lib.BaseTestCase):
       test_profiler = profilers.StorageProfiler(
           'test', temp_directory)
 
-      test_profiler._FILENAME_PREFIX = 'test'
-      test_profiler._FILE_HEADER = 'test'
+      setattr(test_profiler, '_FILENAME_PREFIX', 'test')
+      setattr(test_profiler, '_FILE_HEADER', 'test')
 
       test_profiler.Start()
 
