@@ -23,7 +23,7 @@ class YAMLAttributeContainerDefinitionsFile(object):
   attribute container definitions. An attribute container definition consists
   of:
 
-  name: 'windows_eventlog_message_file'
+  name: windows_eventlog_message_file
   attributes:
   - name: path
     type: str
@@ -43,8 +43,8 @@ class YAMLAttributeContainerDefinitionsFile(object):
       'timestamp'])
 
   _SUPPORTED_KEYS = frozenset([
-      'name',
-      'attributes'])
+      'attributes',
+      'name'])
 
   def _ReadDefinition(self, definition_values):
     """Reads a definition from a dictionary.
