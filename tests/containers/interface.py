@@ -32,12 +32,12 @@ class AttributeContainerTest(test_lib.BaseTestCase):
   def testCopyToDict(self):
     """Tests the CopyToDict function."""
     attribute_container = interface.AttributeContainer()
-    attribute_container.attribute_name = 'attribute_name'
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_name = 'MyName'
+    attribute_container.attribute_value = 'MyValue'
 
     expected_dict = {
-        'attribute_name': 'attribute_name',
-        'attribute_value': 'attribute_value'}
+        'attribute_name': 'MyName',
+        'attribute_value': 'MyValue'}
 
     test_dict = attribute_container.CopyToDict()
 
@@ -47,8 +47,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
     """Tests the GetAttributeNames function."""
     attribute_container = interface.AttributeContainer()
     attribute_container._protected_attribute = 'protected'
-    attribute_container.attribute_name = 'attribute_name'
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_name = 'MyName'
+    attribute_container.attribute_value = 'MyValue'
 
     expected_attribute_names = ['attribute_name', 'attribute_value']
 
@@ -70,12 +70,12 @@ class AttributeContainerTest(test_lib.BaseTestCase):
     """Tests the GetAttributes function."""
     attribute_container = interface.AttributeContainer()
     attribute_container._protected_attribute = 'protected'
-    attribute_container.attribute_name = 'attribute_name'
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_name = 'MyName'
+    attribute_container.attribute_value = 'MyValue'
 
     expected_attributes = [
-        ('attribute_name', 'attribute_name'),
-        ('attribute_value', 'attribute_value')]
+        ('attribute_name', 'MyName'),
+        ('attribute_value', 'MyValue')]
 
     attributes = sorted(attribute_container.GetAttributes())
 
@@ -86,8 +86,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     expected_attributes = [
         ('_protected_attribute', 'protected'),
-        ('attribute_name', 'attribute_name'),
-        ('attribute_value', 'attribute_value')]
+        ('attribute_name', 'MyName'),
+        ('attribute_value', 'MyValue')]
 
     attributes = sorted(attribute_container.GetAttributes())
 
@@ -97,8 +97,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
     """Tests the GetAttributeValuesHash function."""
     attribute_container = interface.AttributeContainer()
     attribute_container._protected_attribute = 'protected'
-    attribute_container.attribute_name = 'attribute_name'
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_name = 'MyName'
+    attribute_container.attribute_value = 'MyValue'
 
     attribute_values_hash1 = attribute_container.GetAttributeValuesHash()
 
@@ -108,7 +108,7 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     self.assertNotEqual(attribute_values_hash1, attribute_values_hash2)
 
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_value = 'MyValue'
 
     setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
         '_protected_attribute'])
@@ -121,8 +121,8 @@ class AttributeContainerTest(test_lib.BaseTestCase):
     """Tests the GetAttributeValuesString function."""
     attribute_container = interface.AttributeContainer()
     attribute_container._protected_attribute = 'protected'
-    attribute_container.attribute_name = 'attribute_name'
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_name = 'MyName'
+    attribute_container.attribute_value = 'MyValue'
 
     attribute_values_string1 = attribute_container.GetAttributeValuesString()
 
@@ -132,7 +132,7 @@ class AttributeContainerTest(test_lib.BaseTestCase):
 
     self.assertNotEqual(attribute_values_string1, attribute_values_string2)
 
-    attribute_container.attribute_value = 'attribute_value'
+    attribute_container.attribute_value = 'MyValue'
 
     setattr(attribute_container, '_SERIALIZABLE_PROTECTED_ATTRIBUTES', [
         '_protected_attribute'])
