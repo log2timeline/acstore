@@ -2,8 +2,8 @@
 """SQLite-based attribute container store."""
 
 import ast
-import collections
 import itertools
+import json
 import os
 import pathlib
 import sqlite3
@@ -122,7 +122,8 @@ class SQLiteSchemaHelper(object):
       elif data_type not in self._MAPPINGS:
         serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
             data_type, 'json')
-        value = serializer.DeserializeValue(value)
+        json_dict = json.loads(value)
+        value = serializer.DeserializeValue(json_dict)
 
     return value
 
@@ -160,12 +161,14 @@ class SQLiteSchemaHelper(object):
         if isinstance(value, set):
           value = list(value)
 
-        return serializer.SerializeValue(value)
+        json_dict = serializer.SerializeValue(value)
+        return json.dumps(json_dict)
 
     return value
 
 
-class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
+class SQLiteAttributeContainerStore(
+    interface.AttributeContainerStoreWithReadCache):
   """SQLite-based attribute container store.
 
   Attributes:
@@ -205,15 +208,11 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
   _INSERT_METADATA_VALUE_QUERY = (
       'INSERT INTO metadata (key, value) VALUES (?, ?)')
 
-  # The maximum number of cached attribute containers
-  _MAXIMUM_CACHED_CONTAINERS = 32 * 1024
-
   _MAXIMUM_WRITE_CACHE_SIZE = 50
 
   def __init__(self):
     """Initializes a SQLite attribute container store."""
     super(SQLiteAttributeContainerStore, self).__init__()
-    self._attribute_container_cache = collections.OrderedDict()
     self._connection = None
     self._cursor = None
     self._is_open = False
@@ -223,20 +222,6 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
 
     self.format_version = self._FORMAT_VERSION
     self.serialization_format = 'json'
-
-  def _CacheAttributeContainerByIndex(self, attribute_container, index):
-    """Caches a specific attribute container.
-
-    Args:
-      attribute_container (AttributeContainer): attribute container.
-      index (int): attribute container index.
-    """
-    if len(self._attribute_container_cache) >= self._MAXIMUM_CACHED_CONTAINERS:
-      self._attribute_container_cache.popitem(last=True)
-
-    lookup_key = f'{attribute_container.CONTAINER_TYPE:s}.{index:d}'
-    self._attribute_container_cache[lookup_key] = attribute_container
-    self._attribute_container_cache.move_to_end(lookup_key, last=False)
 
   def _CacheAttributeContainerForWrite(
       self, container_type, column_names, values):
@@ -514,26 +499,6 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
         finally:
           if self._storage_profiler:
             self._storage_profiler.StopTiming('get_containers')
-
-  def _GetCachedAttributeContainer(self, container_type, index):
-    """Retrieves a specific cached attribute container.
-
-    Args:
-      container_type (str): attribute container type.
-      index (int): attribute container index.
-
-    Returns:
-      AttributeContainer: attribute container or None if not available.
-
-    Raises:
-      IOError: when there is an error querying the attribute container store.
-      OSError: when there is an error querying the attribute container store.
-    """
-    lookup_key = f'{container_type:s}.{index:d}'
-    attribute_container = self._attribute_container_cache.get(lookup_key, None)
-    if attribute_container:
-      self._attribute_container_cache.move_to_end(lookup_key, last=False)
-    return attribute_container
 
   def _HasTable(self, table_name):
     """Determines if a specific table exists.
@@ -835,7 +800,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       OSError: if the attribute container store is already closed.
     """
     if not self._is_open:
-      raise IOError('Storage file already closed.')
+      raise IOError('Attribute container store already closed.')
 
     if self._connection:
       self._Flush()
@@ -1034,7 +999,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStore):
       ValueError: if path is missing.
     """
     if self._is_open:
-      raise IOError('Storage file already opened.')
+      raise IOError('Attribute container store already opened.')
 
     if not path:
       raise ValueError('Missing path.')

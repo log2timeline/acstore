@@ -4,6 +4,14 @@ acstore.helpers package
 Submodules
 ----------
 
+acstore.helpers.json\_serializer module
+---------------------------------------
+
+.. automodule:: acstore.helpers.json_serializer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 acstore.helpers.schema module
 -----------------------------
 

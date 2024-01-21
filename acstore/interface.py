@@ -238,3 +238,55 @@ class AttributeContainerStore(object):
     """
     self._RaiseIfNotWritable()
     self._WriteExistingAttributeContainer(container)
+
+
+class AttributeContainerStoreWithReadCache(AttributeContainerStore):
+  """Interface of an attribute container store with read cache.
+
+  Attributes:
+    format_version (int): storage format version.
+  """
+
+  # pylint: disable=abstract-method
+
+  # The maximum number of cached attribute containers
+  _MAXIMUM_CACHED_CONTAINERS = 32 * 1024
+
+  def __init__(self):
+    """Initializes an attribute container store with read cache."""
+    super(AttributeContainerStoreWithReadCache, self).__init__()
+    self._attribute_container_cache = collections.OrderedDict()
+
+  def _CacheAttributeContainerByIndex(self, attribute_container, index):
+    """Caches a specific attribute container.
+
+    Args:
+      attribute_container (AttributeContainer): attribute container.
+      index (int): attribute container index.
+    """
+    if len(self._attribute_container_cache) >= self._MAXIMUM_CACHED_CONTAINERS:
+      self._attribute_container_cache.popitem(last=True)
+
+    lookup_key = f'{attribute_container.CONTAINER_TYPE:s}.{index:d}'
+    self._attribute_container_cache[lookup_key] = attribute_container
+    self._attribute_container_cache.move_to_end(lookup_key, last=False)
+
+  def _GetCachedAttributeContainer(self, container_type, index):
+    """Retrieves a specific cached attribute container.
+
+    Args:
+      container_type (str): attribute container type.
+      index (int): attribute container index.
+
+    Returns:
+      AttributeContainer: attribute container or None if not available.
+
+    Raises:
+      IOError: when there is an error querying the attribute container store.
+      OSError: when there is an error querying the attribute container store.
+    """
+    lookup_key = f'{container_type:s}.{index:d}'
+    attribute_container = self._attribute_container_cache.get(lookup_key, None)
+    if attribute_container:
+      self._attribute_container_cache.move_to_end(lookup_key, last=False)
+    return attribute_container
