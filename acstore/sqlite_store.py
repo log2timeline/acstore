@@ -500,6 +500,42 @@ class SQLiteAttributeContainerStore(
           if self._storage_profiler:
             self._storage_profiler.StopTiming('get_containers')
 
+  def _GetNumberOfAttributeContainerRows(self, container_type):
+    """Retrieves the number of attribute container rows.
+
+    Args:
+      container_type (str): attribute container type.
+
+    Returns:
+      int: the number of rows of a specified attribute container type.
+
+    Raises:
+      IOError: when there is an error querying the attribute container store.
+      OSError: when there is an error querying the attribute container store.
+    """
+    self._CommitWriteCache(container_type)
+
+    if not self._HasTable(container_type):
+      return 0
+
+    # Note that this is SQLite specific, and will give inaccurate results if
+    # there are DELETE commands run on the table. acstore does not run any
+    # DELETE commands.
+    query = f'SELECT MAX(_ROWID_) FROM {container_type:s} LIMIT 1'
+
+    try:
+      self._cursor.execute(query)
+    except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
+      raise IOError((
+          f'Unable to query attribute container store with error: '
+          f'{exception!s}'))
+
+    row = self._cursor.fetchone()
+    if not row:
+      return 0
+
+    return row[0] or 0
+
   def _HasTable(self, table_name):
     """Determines if a specific table exists.
 
@@ -938,33 +974,8 @@ class SQLiteAttributeContainerStore(
 
     Returns:
       int: the number of containers of a specified type.
-
-    Raises:
-      IOError: when there is an error querying the attribute container store.
-      OSError: when there is an error querying the attribute container store.
     """
-    self._CommitWriteCache(container_type)
-
-    if not self._HasTable(container_type):
-      return 0
-
-    # Note that this is SQLite specific, and will give inaccurate results if
-    # there are DELETE commands run on the table. acstore does not run any
-    # DELETE commands.
-    query = f'SELECT MAX(_ROWID_) FROM {container_type:s} LIMIT 1'
-
-    try:
-      self._cursor.execute(query)
-    except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
-
-    row = self._cursor.fetchone()
-    if not row:
-      return 0
-
-    return row[0] or 0
+    return self._attribute_container_sequence_numbers[container_type]
 
   def HasAttributeContainers(self, container_type):
     """Determines if store contains a specific type of attribute containers.
@@ -975,13 +986,8 @@ class SQLiteAttributeContainerStore(
     Returns:
       bool: True if the store contains the specified type of attribute
           containers.
-
-    Raises:
-      IOError: when there is an error querying the attribute container store.
-      OSError: when there is an error querying the attribute container store.
     """
-    count = self.GetNumberOfAttributeContainers(container_type)
-    return count > 0
+    return self._attribute_container_sequence_numbers[container_type] > 0
 
   def Open(self, path=None, read_only=True, **unused_kwargs):  # pylint: disable=arguments-differ
     """Opens the store.
@@ -1062,6 +1068,7 @@ class SQLiteAttributeContainerStore(
     # Initialize next_sequence_number based on the file contents so that
     # AttributeContainerIdentifier points to the correct attribute container.
     for container_type in self._containers_manager.GetContainerTypes():
-      next_sequence_number = self.GetNumberOfAttributeContainers(container_type)
+      next_sequence_number = self._GetNumberOfAttributeContainerRows(
+          container_type)
       self._SetAttributeContainerNextSequenceNumber(
           container_type, next_sequence_number)

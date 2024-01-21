@@ -108,16 +108,16 @@ class AttributeContainerStore(object):
         container_type] = next_sequence_number
 
   @abc.abstractmethod
-  def _WriteNewAttributeContainer(self, container):
-    """Writes a new attribute container to the store.
+  def _WriteExistingAttributeContainer(self, container):
+    """Writes an existing attribute container to the store.
 
     Args:
       container (AttributeContainer): attribute container.
     """
 
   @abc.abstractmethod
-  def _WriteExistingAttributeContainer(self, container):
-    """Writes an existing attribute container to the store.
+  def _WriteNewAttributeContainer(self, container):
+    """Writes a new attribute container to the store.
 
     Args:
       container (AttributeContainer): attribute container.
@@ -150,12 +150,6 @@ class AttributeContainerStore(object):
 
     Returns:
       AttributeContainer: attribute container or None if not available.
-
-    Raises:
-      IOError: when the store is closed or if an unsupported identifier is
-          provided.
-      OSError: when the store is closed or if an unsupported identifier is
-          provided.
     """
 
   @abc.abstractmethod
@@ -168,10 +162,6 @@ class AttributeContainerStore(object):
 
     Returns:
       AttributeContainer: attribute container or None if not available.
-
-    Raises:
-      IOError: when the store is closed.
-      OSError: when the store is closed.
     """
 
   @abc.abstractmethod
@@ -185,10 +175,6 @@ class AttributeContainerStore(object):
 
     Returns:
       generator(AttributeContainer): attribute container generator.
-
-    Raises:
-      IOError: when the store is closed.
-      OSError: when the store is closed.
     """
 
   @abc.abstractmethod
@@ -280,10 +266,6 @@ class AttributeContainerStoreWithReadCache(AttributeContainerStore):
 
     Returns:
       AttributeContainer: attribute container or None if not available.
-
-    Raises:
-      IOError: when there is an error querying the attribute container store.
-      OSError: when there is an error querying the attribute container store.
     """
     lookup_key = f'{container_type:s}.{index:d}'
     attribute_container = self._attribute_container_cache.get(lookup_key, None)

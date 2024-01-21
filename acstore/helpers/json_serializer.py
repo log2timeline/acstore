@@ -45,10 +45,10 @@ class AttributeContainerJSONSerializer(object):
 
     for attribute_name, attribute_value in attribute_container.GetAttributes():
       data_type = schema.get(attribute_name, None)
-      if data_type:
-        serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
-            data_type, 'json')
+      serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+          data_type, 'json')
 
+      if serializer:
         attribute_value = serializer.SerializeValue(attribute_value)
 
       # JSON will not serialize certain runtime types like set, therefore

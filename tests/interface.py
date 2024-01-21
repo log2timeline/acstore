@@ -59,5 +59,40 @@ class AttributeContainerStoreTest(test_lib.BaseTestCase):
     test_store.SetStorageProfiler(None)
 
 
+class AttributeContainerStoreWithReadCacheTest(test_lib.BaseTestCase):
+  """Tests for the attribute container store with read cache."""
+
+  # pylint: disable=protected-access
+
+  def testCacheAttributeContainerByIndex(self):
+    """Tests the _CacheAttributeContainerByIndex function."""
+    attribute_container = test_lib.TestAttributeContainer()
+
+    with test_lib.TempDirectory():
+      test_store = interface.AttributeContainerStoreWithReadCache()
+
+      self.assertEqual(len(test_store._attribute_container_cache), 0)
+
+      test_store._CacheAttributeContainerByIndex(attribute_container, 0)
+      self.assertEqual(len(test_store._attribute_container_cache), 1)
+
+  def testGetCachedAttributeContainer(self):
+    """Tests the _GetCachedAttributeContainer function."""
+    attribute_container = test_lib.TestAttributeContainer()
+
+    with test_lib.TempDirectory():
+      test_store = interface.AttributeContainerStoreWithReadCache()
+
+      cached_container = test_store._GetCachedAttributeContainer(
+          attribute_container.CONTAINER_TYPE, 1)
+      self.assertIsNone(cached_container)
+
+      test_store._CacheAttributeContainerByIndex(attribute_container, 1)
+
+      cached_container = test_store._GetCachedAttributeContainer(
+          attribute_container.CONTAINER_TYPE, 1)
+      self.assertIsNotNone(cached_container)
+
+
 if __name__ == '__main__':
   unittest.main()
