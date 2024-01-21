@@ -116,18 +116,6 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
     containers_manager.AttributeContainersManager.DeregisterAttributeContainer(
         test_lib.TestAttributeContainer)
 
-  def testCacheAttributeContainerByIndex(self):
-    """Tests the _CacheAttributeContainerByIndex function."""
-    attribute_container = test_lib.TestAttributeContainer()
-
-    with test_lib.TempDirectory():
-      test_store = sqlite_store.SQLiteAttributeContainerStore()
-
-      self.assertEqual(len(test_store._attribute_container_cache), 0)
-
-      test_store._CacheAttributeContainerByIndex(attribute_container, 0)
-      self.assertEqual(len(test_store._attribute_container_cache), 1)
-
   def testCheckStorageMetadata(self):
     """Tests the _CheckStorageMetadata function."""
     with test_lib.TempDirectory():
@@ -219,22 +207,36 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       finally:
         test_store.Close()
 
-  def testGetCachedAttributeContainer(self):
-    """Tests the _GetCachedAttributeContainer function."""
+  def testGetNumberOfAttributeContainerRows(self):
+    """Tests the _GetNumberOfAttributeContainerRows function."""
     attribute_container = test_lib.TestAttributeContainer()
 
-    with test_lib.TempDirectory():
+    with test_lib.TempDirectory() as temp_directory:
+      test_path = os.path.join(temp_directory, 'acstore.sqlite')
       test_store = sqlite_store.SQLiteAttributeContainerStore()
+      test_store.Open(path=test_path, read_only=False)
 
-      cached_container = test_store._GetCachedAttributeContainer(
-          attribute_container.CONTAINER_TYPE, 1)
-      self.assertIsNone(cached_container)
+      try:
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
+            attribute_container.CONTAINER_TYPE)
+        self.assertEqual(number_of_containers, 0)
 
-      test_store._CacheAttributeContainerByIndex(attribute_container, 1)
+        test_store.AddAttributeContainer(attribute_container)
 
-      cached_container = test_store._GetCachedAttributeContainer(
-          attribute_container.CONTAINER_TYPE, 1)
-      self.assertIsNotNone(cached_container)
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
+            attribute_container.CONTAINER_TYPE)
+        self.assertEqual(number_of_containers, 1)
+
+        # Test for a supported container type that does not have a table
+        # present in the storage file.
+        query = f'DROP TABLE {attribute_container.CONTAINER_TYPE:s}'
+        test_store._cursor.execute(query)
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
+            attribute_container.CONTAINER_TYPE)
+        self.assertEqual(number_of_containers, 0)
+
+      finally:
+        test_store.Close()
 
   def testHasTable(self):
     """Tests the _HasTable function."""
@@ -283,19 +285,19 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store.Open(path=test_path, read_only=False)
 
       try:
-        number_of_containers = test_store.GetNumberOfAttributeContainers(
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 0)
 
         test_store._WriteNewAttributeContainer(attribute_container)
 
-        number_of_containers = test_store.GetNumberOfAttributeContainers(
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 1)
 
         test_store._WriteExistingAttributeContainer(attribute_container)
 
-        number_of_containers = test_store.GetNumberOfAttributeContainers(
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 1)
 
@@ -315,13 +317,13 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store.Open(path=test_path, read_only=False)
 
       try:
-        number_of_containers = test_store.GetNumberOfAttributeContainers(
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 0)
 
         test_store._WriteNewAttributeContainer(attribute_container)
 
-        number_of_containers = test_store.GetNumberOfAttributeContainers(
+        number_of_containers = test_store._GetNumberOfAttributeContainerRows(
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 1)
 
@@ -468,12 +470,8 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
             attribute_container.CONTAINER_TYPE)
         self.assertEqual(number_of_containers, 1)
 
-        # Test for a supported container type that does not have a table
-        # present in the storage file.
-        query = f'DROP TABLE {attribute_container.CONTAINER_TYPE:s}'
-        test_store._cursor.execute(query)
         number_of_containers = test_store.GetNumberOfAttributeContainers(
-            attribute_container.CONTAINER_TYPE)
+            'bogus')
         self.assertEqual(number_of_containers, 0)
 
       finally:
