@@ -82,18 +82,18 @@ class AttributeContainerStore(object):
   def _RaiseIfNotReadable(self):
     """Raises if the store is not readable.
 
-     Raises:
-       OSError: if the store cannot be read from.
-       IOError: if the store cannot be read from.
+    Raises:
+      OSError: if the store cannot be read from.
+      IOError: if the store cannot be read from.
     """
 
   @abc.abstractmethod
   def _RaiseIfNotWritable(self):
     """Raises if the store is not writable.
 
-     Raises:
-       OSError: if the store cannot be written to.
-       IOError: if the store cannot be written to.
+    Raises:
+      OSError: if the store cannot be written to.
+      IOError: if the store cannot be written to.
     """
 
   def _SetAttributeContainerNextSequenceNumber(
