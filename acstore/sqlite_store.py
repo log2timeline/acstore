@@ -563,9 +563,9 @@ class SQLiteAttributeContainerStore(
   def _RaiseIfNotReadable(self):
     """Raises if the attribute container store is not readable.
 
-     Raises:
-      IOError: when the attribute container store is closed.
-      OSError: when the attribute container store is closed.
+    Raises:
+     IOError: when the attribute container store is closed.
+     OSError: when the attribute container store is closed.
     """
     if not self._is_open:
       raise IOError('Unable to read from closed attribute container store.')

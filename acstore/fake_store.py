@@ -22,9 +22,9 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
   def _RaiseIfNotReadable(self):
     """Raises if the store is not readable.
 
-     Raises:
-       OSError: if the store cannot be read from.
-       IOError: if the store cannot be read from.
+    Raises:
+      OSError: if the store cannot be read from.
+      IOError: if the store cannot be read from.
     """
     if not self._is_open:
       raise IOError('Unable to read from closed storage writer.')
