@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Attribute container JSON serializer."""
 
+from acstore.containers import interface as containers_interface
 from acstore.containers import manager as containers_manager
 from acstore.helpers import schema as schema_helper
 
@@ -45,11 +46,14 @@ class AttributeContainerJSONSerializer(object):
 
     for attribute_name, attribute_value in attribute_container.GetAttributes():
       data_type = schema.get(attribute_name, None)
-      serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
-          data_type, 'json')
-
-      if serializer:
-        attribute_value = serializer.SerializeValue(attribute_value)
+      if data_type == 'AttributeContainerIdentifier' and isinstance(
+          attribute_value, containers_interface.AttributeContainerIdentifier):
+        attribute_value = attribute_value.CopyToString()
+      else:
+        serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+            data_type, 'json')
+        if serializer:
+          attribute_value = serializer.SerializeValue(attribute_value)
 
       # JSON will not serialize certain runtime types like set, therefore
       # these are cast to list first.
@@ -104,11 +108,15 @@ class AttributeContainerJSONSerializer(object):
         continue
 
       data_type = schema.get(attribute_name, None)
-      serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
-          data_type, 'json')
-
-      if serializer:
-        attribute_value = serializer.DeserializeValue(attribute_value)
+      if data_type == 'AttributeContainerIdentifier':
+        identifier = containers_interface.AttributeContainerIdentifier()
+        identifier.CopyFromString(attribute_value)
+        attribute_value = identifier
+      else:
+        serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+            data_type, 'json')
+        if serializer:
+          attribute_value = serializer.DeserializeValue(attribute_value)
 
       setattr(attribute_container, attribute_name, attribute_value)
 
