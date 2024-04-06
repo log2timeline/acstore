@@ -89,6 +89,11 @@ class AttributeContainerJSONSerializer(object):
     attribute_container = cls._CONTAINERS_MANAGER.CreateAttributeContainer(
         container_type)
 
+    try:
+      schema = cls._CONTAINERS_MANAGER.GetSchema(container_type)
+    except ValueError:
+      schema = {}
+
     supported_attribute_names = attribute_container.GetAttributeNames()
     for attribute_name, attribute_value in json_dict.items():
       if attribute_name in ('__container_type__', '__type__'):
@@ -97,6 +102,13 @@ class AttributeContainerJSONSerializer(object):
       # Be strict about which attributes to set.
       if attribute_name not in supported_attribute_names:
         continue
+
+      data_type = schema.get(attribute_name, None)
+      serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+          data_type, 'json')
+
+      if serializer:
+        attribute_value = serializer.DeserializeValue(attribute_value)
 
       setattr(attribute_container, attribute_name, attribute_value)
 
