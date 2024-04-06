@@ -666,7 +666,7 @@ class SQLiteAttributeContainerStore(
           f'Unsupported attribute container type: {container.CONTAINER_TYPE:s}')
 
     column_names = []
-    values = []
+    row_values = []
     for name, data_type in sorted(schema.items()):
       attribute_value = getattr(container, name, None)
       try:
@@ -679,7 +679,7 @@ class SQLiteAttributeContainerStore(
             f'{data_type:s}'))
 
       column_names.append(f'{name:s} = ?')
-      values.append(row_value)
+      row_values.append(row_value)
 
     column_names_string = ', '.join(column_names)
 
@@ -690,7 +690,7 @@ class SQLiteAttributeContainerStore(
       self._storage_profiler.StartTiming('write_existing')
 
     try:
-      self._cursor.execute(query, values)
+      self._cursor.execute(query, row_values)
 
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
       raise IOError((
