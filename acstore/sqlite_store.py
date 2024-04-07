@@ -180,23 +180,15 @@ class SQLiteAttributeContainerStore(
 
   # The earliest format version, stored in-file, that this class
   # is able to append (write).
-  _APPEND_COMPATIBLE_FORMAT_VERSION = 20221023
+  _APPEND_COMPATIBLE_FORMAT_VERSION = 20230312
 
   # The earliest format version, stored in-file, that this class
   # is able to upgrade (write new format features).
-  _UPGRADE_COMPATIBLE_FORMAT_VERSION = 20221023
+  _UPGRADE_COMPATIBLE_FORMAT_VERSION = 20230312
 
   # The earliest format version, stored in-file, that this class
   # is able to read.
-  _READ_COMPATIBLE_FORMAT_VERSION = 20221023
-
-  # TODO: kept for backwards compatibility.
-  _CONTAINER_SCHEMA_TO_SQLITE_TYPE_MAPPINGS = {
-      'AttributeContainerIdentifier': 'TEXT',
-      'bool': 'INTEGER',
-      'int': 'INTEGER',
-      'str': 'TEXT',
-      'timestamp': 'BIGINT'}
+  _READ_COMPATIBLE_FORMAT_VERSION = 20230312
 
   _CREATE_METADATA_TABLE_QUERY = (
       'CREATE TABLE metadata (key TEXT, value TEXT);')
