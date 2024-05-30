@@ -1,1 +1,2 @@
 PyYAML >= 3.10
+leveldb @ git+https://github.com/joachimmetz/py-leveldb.git@0.202
