@@ -794,6 +794,8 @@ class SQLiteAttributeContainerStore(
     if not os.path.isfile(path):
       return False
 
+    result = False
+
     try:
       connection = sqlite3.connect(
           path, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -816,7 +818,7 @@ class SQLiteAttributeContainerStore(
       connection.close()
 
     except (IOError, TypeError, ValueError, sqlite3.DatabaseError):
-      result = False
+      pass
 
     return result
 
