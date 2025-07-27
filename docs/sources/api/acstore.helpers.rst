@@ -9,29 +9,29 @@ acstore.helpers.json\_serializer module
 
 .. automodule:: acstore.helpers.json_serializer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.helpers.schema module
 -----------------------------
 
 .. automodule:: acstore.helpers.schema
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.helpers.yaml\_definitions\_file module
 ----------------------------------------------
 
 .. automodule:: acstore.helpers.yaml_definitions_file
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: acstore.helpers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
