@@ -9,21 +9,21 @@ acstore.containers.interface module
 
 .. automodule:: acstore.containers.interface
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.containers.manager module
 ---------------------------------
 
 .. automodule:: acstore.containers.manager
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: acstore.containers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -18,45 +18,45 @@ acstore.errors module
 
 .. automodule:: acstore.errors
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.fake\_store module
 --------------------------
 
 .. automodule:: acstore.fake_store
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.interface module
 ------------------------
 
 .. automodule:: acstore.interface
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.profilers module
 ------------------------
 
 .. automodule:: acstore.profilers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 acstore.sqlite\_store module
 ----------------------------
 
 .. automodule:: acstore.sqlite_store
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: acstore
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
