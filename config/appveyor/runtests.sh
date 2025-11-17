@@ -12,4 +12,4 @@ export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib ${LDFLAGS}";
 # Set the following environment variables to ensure tox can find Python 3.14.
 export PATH="/usr/local/opt/python@3.14/bin:${PATH}";
 
-tox -e py313
+tox -e py314
