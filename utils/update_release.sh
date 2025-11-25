@@ -3,8 +3,8 @@
 # Script that makes changes in preparation of a new release, such as updating
 # the version and documentation.
 
-EXIT_FAILURE=1;
-EXIT_SUCCESS=0;
+EXIT_FAILURE=1
+EXIT_SUCCESS=0
 
 VERSION=$(date -u +"%Y%m%d")
 
@@ -31,5 +31,5 @@ EOT
 # Regenerate the API documentation.
 tox -edocs
 
-exit ${EXIT_SUCCESS};
+exit ${EXIT_SUCCESS}
 
