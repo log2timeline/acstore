@@ -1,0 +1,14 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index c007262..a420a5a 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -26,7 +26,5 @@ Documentation = "https://acstore.readthedocs.io/en/latest"
+ Homepage = "https://github.com/log2timeline/acstore"
+ Repository = "https://github.com/log2timeline/acstore"
+ 
+-[tool.setuptools.packages.find]
+-where = ["."]
+-include = ["acstore"]
+-exclude = ["docs", "tests", "tests.*", "utils"]
++[tool.setuptools]
++package-dir = {"acstore" = "acstore"}
