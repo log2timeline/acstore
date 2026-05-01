@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Attribute container JSON serializer."""
 
 from acstore.containers import interface as containers_interface

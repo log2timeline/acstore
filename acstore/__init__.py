@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Attribute Container Storage (ACStore).
 
 ACStore, or Attribute Container Storage, provides a stand-alone implementation

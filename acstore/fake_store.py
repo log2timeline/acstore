@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fake (in-memory only) attribute container store for testing."""
 
 import ast
