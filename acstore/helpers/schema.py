@@ -1,7 +1,7 @@
 """Schema helper."""
 
 
-class SchemaHelper(object):
+class SchemaHelper:
   """Schema helper."""
 
   # Data types and corresponding attribute serializers per method.

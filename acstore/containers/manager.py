@@ -1,7 +1,7 @@
 """This file contains the attribute container manager class."""
 
 
-class AttributeContainersManager(object):
+class AttributeContainersManager:
   """Class that implements the attribute container manager."""
 
   _attribute_container_classes = {}

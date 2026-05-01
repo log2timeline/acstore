@@ -30,7 +30,7 @@ class TestAttributeContainer(containers_interface.AttributeContainer):
 
   def __init__(self):
     """Initializes an attribute container."""
-    super(TestAttributeContainer, self).__init__()
+    super().__init__()
     self.attribute = None
 
 
@@ -67,12 +67,12 @@ class BaseTestCase(unittest.TestCase):
       raise unittest.SkipTest(f'missing test file: {filename:s}')
 
 
-class TempDirectory(object):
+class TempDirectory:
   """Class that implements a temporary directory."""
 
   def __init__(self):
     """Initializes a temporary directory."""
-    super(TempDirectory, self).__init__()
+    super().__init__()
     self.name = ''
 
   def __enter__(self):

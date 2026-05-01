@@ -5,7 +5,7 @@ from acstore.containers import manager as containers_manager
 from acstore.helpers import schema as schema_helper
 
 
-class AttributeContainerJSONSerializer(object):
+class AttributeContainerJSONSerializer:
   """Attribute container JSON serializer."""
 
   _CONTAINERS_MANAGER = containers_manager.AttributeContainersManager

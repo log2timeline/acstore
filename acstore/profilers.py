@@ -6,7 +6,7 @@ import os
 import time
 
 
-class CPUTimeMeasurement(object):
+class CPUTimeMeasurement:
   """The CPU time measurement.
 
   Attributes:
@@ -16,7 +16,7 @@ class CPUTimeMeasurement(object):
 
   def __init__(self):
     """Initializes the CPU time measurement."""
-    super(CPUTimeMeasurement, self).__init__()
+    super().__init__()
     self._start_cpu_time = None
     self.start_sample_time = None
     self.total_cpu_time = None
@@ -33,7 +33,7 @@ class CPUTimeMeasurement(object):
       self.total_cpu_time += time.perf_counter() - self._start_cpu_time
 
 
-class StorageProfiler(object):
+class StorageProfiler:
   """The storage profiler."""
 
   _FILENAME_PREFIX = 'storage'
@@ -52,7 +52,7 @@ class StorageProfiler(object):
           the sample filename.
       path (str): path of the sample file.
     """
-    super(StorageProfiler, self).__init__()
+    super().__init__()
     self._identifier = identifier
     self._path = path
     self._profile_measurements = {}

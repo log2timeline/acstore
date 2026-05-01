@@ -6,7 +6,7 @@ import collections
 from acstore.containers import manager as containers_manager
 
 
-class AttributeSerializer(object):
+class AttributeSerializer:
   """Attribute serializer."""
 
   @abc.abstractmethod
@@ -32,7 +32,7 @@ class AttributeSerializer(object):
     """
 
 
-class AttributeContainerStore(object):
+class AttributeContainerStore:
   """Interface of an attribute container store.
 
   Attributes:
@@ -41,7 +41,7 @@ class AttributeContainerStore(object):
 
   def __init__(self):
     """Initializes an attribute container store."""
-    super(AttributeContainerStore, self).__init__()
+    super().__init__()
     self._attribute_container_sequence_numbers = collections.Counter()
     self._containers_manager = containers_manager.AttributeContainersManager
     self._storage_profiler = None
@@ -239,7 +239,7 @@ class AttributeContainerStoreWithReadCache(AttributeContainerStore):
 
   def __init__(self):
     """Initializes an attribute container store with read cache."""
-    super(AttributeContainerStoreWithReadCache, self).__init__()
+    super().__init__()
     self._attribute_container_cache = collections.OrderedDict()
 
   def _CacheAttributeContainerByIndex(self, attribute_container, index):
