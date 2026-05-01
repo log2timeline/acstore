@@ -1,6 +1,6 @@
 # Script to set up tests on AppVeyor Windows.
 
-$Dependencies = "PyYAML"
+$Dependencies = "PyYAML leveldb"
 
 If ($Dependencies.Length -gt 0)
 {

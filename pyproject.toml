@@ -18,6 +18,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "leveldb @ git+https://github.com/joachimmetz/py-leveldb.git@0.202",
     "PyYAML >= 3.10",
 ]
 
