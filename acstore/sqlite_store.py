@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """SQLite-based attribute container store."""
 
 import ast
@@ -63,12 +62,6 @@ def PythonAST2SQL(ast_node):
 
   if isinstance(ast_node, ast.Name):
     return ast_node.id
-
-  if isinstance(ast_node, ast.Num):
-    return str(ast_node.n)
-
-  if isinstance(ast_node, ast.Str):
-    return f'"{ast_node.s:s}"'
 
   raise TypeError(ast_node)
 
