@@ -66,7 +66,7 @@ def PythonAST2SQL(ast_node):
   raise TypeError(ast_node)
 
 
-class SQLiteSchemaHelper(object):
+class SQLiteSchemaHelper:
   """SQLite schema helper."""
 
   _MAPPINGS = {
@@ -197,7 +197,7 @@ class SQLiteAttributeContainerStore(
 
   def __init__(self):
     """Initializes a SQLite attribute container store."""
-    super(SQLiteAttributeContainerStore, self).__init__()
+    super().__init__()
     self._connection = None
     self._cursor = None
     self._is_open = False

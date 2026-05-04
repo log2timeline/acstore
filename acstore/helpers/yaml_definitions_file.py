@@ -15,7 +15,7 @@ class AttributeContainerWithSchema(interface.AttributeContainer):
   SCHEMA = {}
 
 
-class YAMLAttributeContainerDefinitionsFile(object):
+class YAMLAttributeContainerDefinitionsFile:
   """YAML-based attribute container definitions file.
 
   A YAML-based attribute container definitions file contains one or more

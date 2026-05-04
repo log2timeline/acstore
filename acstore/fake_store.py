@@ -13,7 +13,7 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
 
   def __init__(self):
     """Initializes a fake (in-memory only) store."""
-    super(FakeAttributeContainerStore, self).__init__()
+    super().__init__()
     self._attribute_container_indexes = {}
     self._attribute_containers = {}
     self._is_open = False

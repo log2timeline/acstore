@@ -1,7 +1,7 @@
 """The attribute container interface."""
 
 
-class AttributeContainerIdentifier(object):
+class AttributeContainerIdentifier:
   """The attribute container identifier.
 
   The identifier is used to uniquely identify attribute containers.
@@ -20,7 +20,7 @@ class AttributeContainerIdentifier(object):
       sequence_number (Optional[int]): sequence number of the attribute
           container.
     """
-    super(AttributeContainerIdentifier, self).__init__()
+    super().__init__()
     self.name = name
     self.sequence_number = sequence_number
 
@@ -45,7 +45,7 @@ class AttributeContainerIdentifier(object):
     return None
 
 
-class AttributeContainer(object):
+class AttributeContainer:
   """The attribute container interface.
 
   This is the base class for those object that exists primarily as a container
@@ -68,7 +68,7 @@ class AttributeContainer(object):
 
   def __init__(self):
     """Initializes an attribute container."""
-    super(AttributeContainer, self).__init__()
+    super().__init__()
     self._identifier = AttributeContainerIdentifier(
         name=self.CONTAINER_TYPE, sequence_number=id(self))
 
