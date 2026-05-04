@@ -17,14 +17,14 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the _RaiseIfNotReadable function."""
     test_store = fake_store.FakeAttributeContainerStore()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store._RaiseIfNotReadable()
 
   def testRaiseIfNotWritable(self):
     """Tests the _RaiseIfNotWritable function."""
     test_store = fake_store.FakeAttributeContainerStore()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store._RaiseIfNotWritable()
 
   def testWriteExistingAttributeContainer(self):
@@ -38,7 +38,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
         attribute_container.CONTAINER_TYPE)
     self.assertEqual(number_of_containers, 0)
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store._WriteExistingAttributeContainer(attribute_container)
 
     test_store._WriteNewAttributeContainer(attribute_container)
@@ -93,7 +93,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
 
     test_store.Close()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store.AddAttributeContainer(attribute_container)
 
   def testGetAttributeContainerByIdentifier(self):
@@ -222,12 +222,12 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
 
     test_store.Open()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store.Open()
 
     test_store.Close()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store.Close()
 
   def testUpdateAttributeContainer(self):
@@ -241,7 +241,7 @@ class FakeAttributeContainerStoreTest(test_lib.BaseTestCase):
         attribute_container.CONTAINER_TYPE)
     self.assertEqual(number_of_containers, 0)
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store.UpdateAttributeContainer(attribute_container)
 
     test_store.AddAttributeContainer(attribute_container)

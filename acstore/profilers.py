@@ -97,9 +97,9 @@ class StorageProfiler:
       sample_time = time.time()
       processing_time = 0.0
 
-    self._WritesString((
+    self._WritesString(
         f'{sample_time:f}\t{profile_name:s}\t{operation:s}\t{description:s}\t'
-        f'{processing_time:f}\t{data_size:d}\t{compressed_data_size:d}\n'))
+        f'{processing_time:f}\t{data_size:d}\t{compressed_data_size:d}\n')
 
   def Start(self):
     """Starts the profiler."""

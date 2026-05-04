@@ -42,9 +42,9 @@ class AttributeContainersManager:
     """
     container_type = attribute_container_class.CONTAINER_TYPE.lower()
     if container_type not in cls._attribute_container_classes:
-      raise KeyError((
+      raise KeyError(
           f'Attribute container class not set for container type: '
-          f'{attribute_container_class.CONTAINER_TYPE:s}.'))
+          f'{attribute_container_class.CONTAINER_TYPE:s}.')
 
     del cls._attribute_container_classes[container_type]
 
@@ -94,9 +94,9 @@ class AttributeContainersManager:
     """
     container_type = attribute_container_class.CONTAINER_TYPE.lower()
     if container_type in cls._attribute_container_classes:
-      raise KeyError((
+      raise KeyError(
           f'Attribute container class already set for container type: '
-          f'{attribute_container_class.CONTAINER_TYPE:s}.'))
+          f'{attribute_container_class.CONTAINER_TYPE:s}.')
 
     cls._attribute_container_classes[container_type] = attribute_container_class
 

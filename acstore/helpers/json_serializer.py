@@ -44,7 +44,7 @@ class AttributeContainerJSONSerializer:
         '__container_type__': attribute_container.CONTAINER_TYPE}
 
     for attribute_name, attribute_value in attribute_container.GetAttributes():
-      data_type = schema.get(attribute_name, None)
+      data_type = schema.get(attribute_name)
       if data_type == 'AttributeContainerIdentifier' and isinstance(
           attribute_value, containers_interface.AttributeContainerIdentifier):
         attribute_value = attribute_value.CopyToString()
@@ -87,7 +87,7 @@ class AttributeContainerJSONSerializer:
       AttributeContainer: attribute container.
     """
     # Use __container_type__ to indicate the attribute container type.
-    container_type = json_dict.get('__container_type__', None)
+    container_type = json_dict.get('__container_type__')
 
     attribute_container = cls._CONTAINERS_MANAGER.CreateAttributeContainer(
         container_type)
@@ -106,7 +106,7 @@ class AttributeContainerJSONSerializer:
       if attribute_name not in supported_attribute_names:
         continue
 
-      data_type = schema.get(attribute_name, None)
+      data_type = schema.get(attribute_name)
       if data_type == 'AttributeContainerIdentifier':
         identifier = containers_interface.AttributeContainerIdentifier()
         identifier.CopyFromString(attribute_value)

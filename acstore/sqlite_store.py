@@ -12,58 +12,88 @@ from acstore.containers import interface as containers_interface
 from acstore.helpers import schema as schema_helper
 
 
-def PythonAST2SQL(ast_node):
-  """Converts a Python AST to SQL.
+class PythonAST2SQLHelper:
+  """Converts Python AST to SQL."""
 
-  Args:
-    ast_node (ast.Node): node of the Python AST.
+  _BOOLEAN_OPERATORS = {
+      ast.And: ' AND ',
+      ast.Or: ' OR '}
 
-  Returns:
-    str: SQL statement that represents the node.
+  _COMPARE_OPERATORS = {
+      ast.Eq: ' = ',
+      ast.NotEq: ' <> '}
 
-  Raises:
-    TypeError: if the type of node is not supported.
-  """
-  if isinstance(ast_node, ast.BoolOp):
-    if isinstance(ast_node.op, ast.And):
-      operand = ' AND '
-    elif isinstance(ast_node.op, ast.Or):
-      operand = ' OR '
-    else:
+  def _ConvertBoolOperation(self, ast_node):
+    """Converts an AST boolean operation node to SQL.
+
+    Args:
+      ast_node (ast.Node): AST node.
+
+    Returns:
+      str: SQL statement.
+
+    Raises:
+      TypeError: if the type of node is not supported.
+    """
+    sql_operator = self._BOOLEAN_OPERATORS.get(type(ast_node.op))
+    if sql_operator is None:
       raise TypeError(ast_node)
 
-    return operand.join([
-        PythonAST2SQL(ast_node_value) for ast_node_value in ast_node.values])
+    return sql_operator.join([
+        self.ConvertNode(value) for value in ast_node.values])
 
-  if isinstance(ast_node, ast.Compare):
+  def _ConvertCompare(self, ast_node):
+    """Converts an AST compare node to SQL.
+
+    Args:
+      ast_node (ast.Node): AST node.
+
+    Returns:
+      str: SQL statement.
+
+    Raises:
+      TypeError: if the type of node is not supported.
+    """
     if len(ast_node.ops) != 1:
       raise TypeError(ast_node)
 
-    if isinstance(ast_node.ops[0], ast.Eq):
-      operator = ' = '
-    elif isinstance(ast_node.ops[0], ast.NotEq):
-      operator = ' <> '
-    else:
+    sql_operator = self._COMPARE_OPERATORS.get(type(ast_node.ops[0]))
+    if sql_operator is None:
       raise TypeError(ast_node)
 
     if len(ast_node.comparators) != 1:
       raise TypeError(ast_node)
 
-    sql_left = PythonAST2SQL(ast_node.left)
-    sql_right = PythonAST2SQL(ast_node.comparators[0])
+    sql_left = self.ConvertNode(ast_node.left)
+    sql_right = self.ConvertNode(ast_node.comparators[0])
 
-    return operator.join([sql_left, sql_right])
+    return sql_operator.join([sql_left, sql_right])
 
-  if isinstance(ast_node, ast.Constant):
-    if isinstance(ast_node.value, str):
-      return f'"{ast_node.value:s}"'
+  _CONVERT_METHODS = {
+      ast.BoolOp: _ConvertBoolOperation,
+      ast.Compare: _ConvertCompare,
+      ast.Constant: lambda _, ast_node: (
+          f'"{ast_node.value:s}"'
+          if isinstance(ast_node.value, str) else str(ast_node.value)),
+      ast.Name: lambda _, ast_node: ast_node.id}
 
-    return str(ast_node.value)
+  def ConvertNode(self, ast_node):
+    """Converts an AST node to SQL.
 
-  if isinstance(ast_node, ast.Name):
-    return ast_node.id
+    Args:
+      ast_node (ast.Node): AST node.
 
-  raise TypeError(ast_node)
+    Returns:
+      str: SQL statement.
+
+    Raises:
+      TypeError: if the type of node is not supported.
+    """
+    convert_methods = self._CONVERT_METHODS.get(type(ast_node))
+    if convert_methods is None:
+      raise TypeError(ast_node)
+
+    return convert_methods(self, ast_node)
 
 
 class SQLiteSchemaHelper:
@@ -97,11 +127,10 @@ class SQLiteSchemaHelper:
       object: runtime value.
 
     Raises:
-      IOError: if the schema data type is not supported.
       OSError: if the schema data type is not supported.
     """
     if not schema_helper.SchemaHelper.HasDataType(data_type):
-      raise IOError(f'Unsupported data type: {data_type:s}')
+      raise OSError(f'Unsupported data type: {data_type:s}')
 
     if value is not None:
       if data_type == 'AttributeContainerIdentifier':
@@ -131,11 +160,10 @@ class SQLiteSchemaHelper:
       object: serialized value.
 
     Raises:
-      IOError: if the schema data type is not supported.
       OSError: if the schema data type is not supported.
     """
     if not schema_helper.SchemaHelper.HasDataType(data_type):
-      raise IOError(f'Unsupported data type: {data_type:s}')
+      raise OSError(f'Unsupported data type: {data_type:s}')
 
     if value is not None:
       if data_type == 'AttributeContainerIdentifier' and isinstance(
@@ -198,6 +226,7 @@ class SQLiteAttributeContainerStore(
   def __init__(self):
     """Initializes a SQLite attribute container store."""
     super().__init__()
+    self._ast_to_sql_helper = PythonAST2SQLHelper()
     self._connection = None
     self._cursor = None
     self._is_open = False
@@ -236,41 +265,40 @@ class SQLiteAttributeContainerStore(
           to see if it can be read and written to.
 
     Raises:
-      IOError: if the storage metadata is not supported.
       OSError: if the storage metadata is not supported.
     """
     format_version = metadata_values.get('format_version', None)
 
     if not format_version:
-      raise IOError('Missing format version.')
+      raise OSError('Missing format version.')
 
     try:
       format_version = int(format_version, 10)
-    except (TypeError, ValueError):
-      raise IOError(f'Invalid format version: {format_version!s}.')
+    except (TypeError, ValueError) as exception:
+      raise OSError(
+          f'Invalid format version: {format_version!s}') from exception
 
     if (not check_readable_only and
         format_version < self._APPEND_COMPATIBLE_FORMAT_VERSION):
-      raise IOError((
+      raise OSError(
           f'Format version: {format_version:d} is too old and can no longer '
           f'be written, minimum supported version: '
-          f'{self._APPEND_COMPATIBLE_FORMAT_VERSION:d}.'))
+          f'{self._APPEND_COMPATIBLE_FORMAT_VERSION:d}')
 
     if format_version < self._READ_COMPATIBLE_FORMAT_VERSION:
-      raise IOError((
+      raise OSError(
           f'Format version: {format_version:d} is too old and can no longer '
           f'be read, minimum supported version: '
-          f'{self._READ_COMPATIBLE_FORMAT_VERSION:d}.'))
+          f'{self._READ_COMPATIBLE_FORMAT_VERSION:d}')
 
     if format_version > self._FORMAT_VERSION:
-      raise IOError((
+      raise OSError(
           f'Format version: {format_version:d} is too new and not yet '
-          f'supported, minimum supported version: '
-          f'{self._FORMAT_VERSION:d}.'))
+          f'supported, minimum supported version: {self._FORMAT_VERSION:d}')
 
     serialization_format = metadata_values.get('serialization_format', None)
     if serialization_format != 'json':
-      raise IOError(
+      raise OSError(
           f'Unsupported serialization format: {serialization_format!s}')
 
     # Ensure format_version is an integer.
@@ -294,14 +322,12 @@ class SQLiteAttributeContainerStore(
       container_type (str): attribute container type.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
     schema = self._GetAttributeContainerSchema(container_type)
     if not schema:
-      raise IOError(f'Unsupported attribute container type: {container_type:s}')
+      raise OSError(f'Unsupported attribute container type: {container_type:s}')
 
     column_definitions = ['_identifier INTEGER PRIMARY KEY AUTOINCREMENT']
 
@@ -315,9 +341,7 @@ class SQLiteAttributeContainerStore(
     try:
       self._cursor.execute(query)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
   def _CreateAttributeContainerFromRow(
       self, container_type, column_names, row, first_column_index):
@@ -333,14 +357,12 @@ class SQLiteAttributeContainerStore(
       AttributeContainer: attribute container.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
     schema = self._GetAttributeContainerSchema(container_type)
     if not schema:
-      raise IOError(f'Unsupported attribute container type: {container_type:s}')
+      raise OSError(f'Unsupported attribute container type: {container_type:s}')
 
     container = self._containers_manager.CreateAttributeContainer(
         container_type)
@@ -352,10 +374,10 @@ class SQLiteAttributeContainerStore(
         try:
           attribute_value = self._schema_helper.DeserializeValue(
               data_type, row_value)
-        except IOError:
-          raise IOError((
+        except OSError as exception:
+          raise OSError(
               f'Unsupported attribute container type: {container_type:s} '
-              f'attribute: {name:s} data type: {data_type:s}'))
+              f'attribute: {name:s} data type: {data_type:s}') from exception
 
         setattr(container, name, attribute_value)
 
@@ -365,7 +387,6 @@ class SQLiteAttributeContainerStore(
     """Ensures cached data is written to file.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     for container_type, write_cache in self._write_cache.items():
@@ -385,7 +406,6 @@ class SQLiteAttributeContainerStore(
       write_cache (list[tuple[str]]): cached attribute container values.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     column_names = write_cache.pop(0)
@@ -407,9 +427,7 @@ class SQLiteAttributeContainerStore(
       self._cursor.execute(query, values)
 
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     finally:
       if self._storage_profiler:
@@ -430,7 +448,6 @@ class SQLiteAttributeContainerStore(
       AttributeContainer: attribute container.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     self._CommitWriteCache(container_type)
@@ -451,9 +468,9 @@ class SQLiteAttributeContainerStore(
       try:
         cursor.execute(query)
       except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-        raise IOError((
+        raise OSError(
             f'Unable to query attribute container store for container: '
-            f'{container_type:s} with error: {exception!s}'))
+            f'{container_type:s}') from exception
 
       if self._storage_profiler:
         self._storage_profiler.StartTiming('get_containers')
@@ -495,7 +512,6 @@ class SQLiteAttributeContainerStore(
       int: the number of rows of a specified attribute container type.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     self._CommitWriteCache(container_type)
@@ -511,9 +527,7 @@ class SQLiteAttributeContainerStore(
     try:
       self._cursor.execute(query)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     row = self._cursor.fetchone()
     if not row:
@@ -531,7 +545,6 @@ class SQLiteAttributeContainerStore(
       bool: True if the table exists, false otherwise.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     query = self._HAS_TABLE_QUERY.format(table_name)
@@ -539,9 +552,7 @@ class SQLiteAttributeContainerStore(
     try:
       self._cursor.execute(query)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     return bool(self._cursor.fetchone())
 
@@ -549,24 +560,22 @@ class SQLiteAttributeContainerStore(
     """Raises if the attribute container store is not readable.
 
     Raises:
-     IOError: when the attribute container store is closed.
-     OSError: when the attribute container store is closed.
+      OSError: when the attribute container store is closed.
     """
     if not self._is_open:
-      raise IOError('Unable to read from closed attribute container store.')
+      raise OSError('Unable to read from closed attribute container store.')
 
   def _RaiseIfNotWritable(self):
     """Raises if the attribute container store is not writable.
 
     Raises:
-      IOError: when the attribute container store is closed or read-only.
       OSError: when the attribute container store is closed or read-only.
     """
     if not self._is_open:
-      raise IOError('Unable to write to closed attribute container store.')
+      raise OSError('Unable to write to closed attribute container store.')
 
     if self._read_only:
-      raise IOError('Unable to write to read-only attribute container store.')
+      raise OSError('Unable to write to read-only attribute container store.')
 
   def _ReadAndCheckStorageMetadata(self, check_readable_only=False):
     """Reads storage metadata and checks that the values are valid.
@@ -577,7 +586,6 @@ class SQLiteAttributeContainerStore(
           to see if it can be read and written to.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     metadata_values = self._ReadMetadata()
@@ -595,7 +603,6 @@ class SQLiteAttributeContainerStore(
       dict[str, str]: metadata values.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     query = 'SELECT key, value FROM metadata'
@@ -603,9 +610,7 @@ class SQLiteAttributeContainerStore(
     try:
       self._cursor.execute(query)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     return {row[0]: row[1] for row in self._cursor.fetchall()}
 
@@ -613,7 +618,6 @@ class SQLiteAttributeContainerStore(
     """Updates the storage metadata format version.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     if self.format_version >= self._UPGRADE_COMPATIBLE_FORMAT_VERSION:
@@ -623,9 +627,8 @@ class SQLiteAttributeContainerStore(
       try:
         self._cursor.execute(query)
       except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-        raise IOError((
-            f'Unable to query attribute container store with error: '
-            f'{exception!s}'))
+        raise OSError(
+            'Unable to query attribute container store') from exception
 
   def _WriteExistingAttributeContainer(self, container):
     """Writes an existing attribute container to the store.
@@ -636,8 +639,6 @@ class SQLiteAttributeContainerStore(
       container (AttributeContainer): attribute container.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
@@ -647,7 +648,7 @@ class SQLiteAttributeContainerStore(
 
     schema = self._GetAttributeContainerSchema(container.CONTAINER_TYPE)
     if not schema:
-      raise IOError(
+      raise OSError(
           f'Unsupported attribute container type: {container.CONTAINER_TYPE:s}')
 
     column_names = []
@@ -657,11 +658,11 @@ class SQLiteAttributeContainerStore(
       try:
         row_value = self._schema_helper.SerializeValue(
             data_type, attribute_value)
-      except IOError:
-        raise IOError((
+      except OSError as exception:
+        raise OSError(
             f'Unsupported attribute container type: '
             f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
-            f'{data_type:s}'))
+            f'{data_type:s}') from exception
 
       column_names.append(f'{name:s} = ?')
       row_values.append(row_value)
@@ -676,11 +677,8 @@ class SQLiteAttributeContainerStore(
 
     try:
       self._cursor.execute(query, row_values)
-
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     finally:
       if self._storage_profiler:
@@ -690,15 +688,12 @@ class SQLiteAttributeContainerStore(
     """Writes metadata.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     try:
       self._cursor.execute(self._CREATE_METADATA_TABLE_QUERY)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     self._WriteMetadataValue('format_version', f'{self._FORMAT_VERSION:d}')
     self._WriteMetadataValue('serialization_format', self.serialization_format)
@@ -711,15 +706,12 @@ class SQLiteAttributeContainerStore(
       value (str): value of the storage metadata.
 
     Raises:
-      IOError: when there is an error querying the attribute container store.
       OSError: when there is an error querying the attribute container store.
     """
     try:
       self._cursor.execute(self._INSERT_METADATA_VALUE_QUERY, (key, value))
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
   def _WriteNewAttributeContainer(self, container):
     """Writes a new attribute container to the store.
@@ -730,8 +722,6 @@ class SQLiteAttributeContainerStore(
       container (AttributeContainer): attribute container.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
@@ -748,7 +738,7 @@ class SQLiteAttributeContainerStore(
 
     schema = self._GetAttributeContainerSchema(container.CONTAINER_TYPE)
     if not schema:
-      raise IOError(
+      raise OSError(
           f'Unsupported attribute container type: {container.CONTAINER_TYPE:s}')
 
     column_names = []
@@ -758,11 +748,11 @@ class SQLiteAttributeContainerStore(
       try:
         row_value = self._schema_helper.SerializeValue(
             data_type, attribute_value)
-      except IOError:
-        raise IOError((
+      except OSError as exception:
+        raise OSError(
             f'Unsupported attribute container type: '
             f'{container.CONTAINER_TYPE:s} attribute: {name:s} data type: '
-            f'{data_type:s}'))
+            f'{data_type:s}') from exception
 
       column_names.append(name)
       row_values.append(row_value)
@@ -800,7 +790,7 @@ class SQLiteAttributeContainerStore(
 
       metadata_values = {row[0]: row[1] for row in cursor.fetchall()}
 
-      format_version = metadata_values.get('format_version', None)
+      format_version = metadata_values.get('format_version')
       if format_version:
         try:
           format_version = int(format_version, 10)
@@ -810,7 +800,7 @@ class SQLiteAttributeContainerStore(
 
       connection.close()
 
-    except (IOError, TypeError, ValueError, sqlite3.DatabaseError):
+    except (OSError, TypeError, ValueError, sqlite3.DatabaseError):
       pass
 
     return result
@@ -819,11 +809,10 @@ class SQLiteAttributeContainerStore(
     """Closes the file.
 
     Raises:
-      IOError: if the attribute container store is already closed.
       OSError: if the attribute container store is already closed.
     """
     if not self._is_open:
-      raise IOError('Attribute container store already closed.')
+      raise OSError('Attribute container store already closed.')
 
     if self._connection:
       self._Flush()
@@ -846,8 +835,6 @@ class SQLiteAttributeContainerStore(
       AttributeContainer: attribute container or None if not available.
 
     Raises:
-      IOError: when the store is closed or if an unsupported attribute
-          container is provided.
       OSError: when the store is closed or if an unsupported attribute
           container is provided.
     """
@@ -865,8 +852,6 @@ class SQLiteAttributeContainerStore(
       AttributeContainer: attribute container or None if not available.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
@@ -881,7 +866,7 @@ class SQLiteAttributeContainerStore(
 
     schema = self._GetAttributeContainerSchema(container_type)
     if not schema:
-      raise IOError(f'Unsupported attribute container type: {container_type:s}')
+      raise OSError(f'Unsupported attribute container type: {container_type:s}')
 
     column_names = sorted(schema.keys())
 
@@ -894,9 +879,7 @@ class SQLiteAttributeContainerStore(
     try:
       self._cursor.execute(query)
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError('Unable to query attribute container store') from exception
 
     if self._storage_profiler:
       self._storage_profiler.StartTiming('get_container_by_index')
@@ -933,21 +916,20 @@ class SQLiteAttributeContainerStore(
       generator(AttributeContainer): attribute container generator.
 
     Raises:
-      IOError: when there is an error querying the attribute container store
-          or if an unsupported attribute container is provided.
       OSError: when there is an error querying the attribute container store
           or if an unsupported attribute container is provided.
     """
     schema = self._GetAttributeContainerSchema(container_type)
     if not schema:
-      raise IOError(f'Unsupported attribute container type: {container_type:s}')
+      raise OSError(f'Unsupported attribute container type: {container_type:s}')
 
     column_names = sorted(schema.keys())
 
     sql_filter_expression = None
     if filter_expression:
       expression_ast = ast.parse(filter_expression, mode='eval')
-      sql_filter_expression = PythonAST2SQL(expression_ast.body)
+      sql_filter_expression = self._ast_to_sql_helper.ConvertNode(
+          expression_ast.body)
 
     return self._GetAttributeContainersWithFilter(
         container_type, column_names=column_names,
@@ -976,7 +958,7 @@ class SQLiteAttributeContainerStore(
     """
     return self._attribute_container_sequence_numbers[container_type] > 0
 
-  def Open(self, path=None, read_only=True, **unused_kwargs):  # pylint: disable=arguments-differ
+  def Open(self, path=None, read_only=True, **unused_kwargs):
     """Opens the store.
 
     Args:
@@ -985,14 +967,12 @@ class SQLiteAttributeContainerStore(
           read-only mode.
 
     Raises:
-      IOError: if the attribute container store is already opened or if
-          the database cannot be connected.
       OSError: if the attribute container store is already opened or if
           the database cannot be connected.
       ValueError: if path is missing.
     """
     if self._is_open:
-      raise IOError('Attribute container store already opened.')
+      raise OSError('Attribute container store already opened.')
 
     if not path:
       raise ValueError('Missing path.')
@@ -1025,9 +1005,8 @@ class SQLiteAttributeContainerStore(
       connection.execute('PRAGMA synchronous=OFF')
 
     except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
-      raise IOError((
-          f'Unable to query attribute container store with error: '
-          f'{exception!s}'))
+      raise OSError(
+          'Unable to query attribute container store with') from exception
 
     cursor = connection.cursor()
     if not cursor:

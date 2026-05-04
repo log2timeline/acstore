@@ -22,8 +22,6 @@ class CPUTimeMeasurementTest(test_lib.BaseTestCase):
 class StorageProfilerTest(test_lib.BaseTestCase):
   """Tests for the storage profiler."""
 
-  # pylint: disable=protected-access
-
   def testIsSupported(self):
     """Tests the IsSupported function."""
     self.assertTrue(profilers.StorageProfiler.IsSupported())

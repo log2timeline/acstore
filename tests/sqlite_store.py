@@ -126,16 +126,16 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       test_store._CheckStorageMetadata(metadata_values)
 
       metadata_values['format_version'] = 'bogus'
-      with self.assertRaises(IOError):
+      with self.assertRaises(OSError):
         test_store._CheckStorageMetadata(metadata_values)
 
       metadata_values['format_version'] = '1'
-      with self.assertRaises(IOError):
+      with self.assertRaises(OSError):
         test_store._CheckStorageMetadata(metadata_values)
 
       metadata_values['format_version'] = f'{test_store._FORMAT_VERSION:d}'
       metadata_values['serialization_format'] = 'bogus'
-      with self.assertRaises(IOError):
+      with self.assertRaises(OSError):
         test_store._CheckStorageMetadata(metadata_values)
 
       metadata_values['serialization_format'] = 'json'
@@ -153,7 +153,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
         test_store._CreateAttributeContainerTable(
             attribute_container.CONTAINER_TYPE)
 
-        with self.assertRaises(IOError):
+        with self.assertRaises(OSError):
           test_store._CreateAttributeContainerTable(
               attribute_container.CONTAINER_TYPE)
 
@@ -260,14 +260,14 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
     """Tests the _RaiseIfNotReadable function."""
     test_store = sqlite_store.SQLiteAttributeContainerStore()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store._RaiseIfNotReadable()
 
   def testRaiseIfNotWritable(self):
     """Tests the _RaiseIfNotWritable function."""
     test_store = sqlite_store.SQLiteAttributeContainerStore()
 
-    with self.assertRaises(IOError):
+    with self.assertRaises(OSError):
       test_store._RaiseIfNotWritable()
 
   # TODO: add tests for _ReadAndCheckStorageMetadata
@@ -352,7 +352,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
       finally:
         test_store.Close()
 
-      with self.assertRaises(IOError):
+      with self.assertRaises(OSError):
         test_store.AddAttributeContainer(attribute_container)
 
   # TODO: add tests for CheckSupportedFormat
@@ -443,7 +443,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
             filter_expression=filter_expression))
         self.assertEqual(len(containers), 0)
 
-        with self.assertRaises(IOError):
+        with self.assertRaises(OSError):
           list(test_store.GetAttributeContainers('bogus'))
 
       finally:
@@ -543,7 +543,7 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
 
       v2_test_store_rw = _TestSQLiteAttributeContainerStoreV20221023()
 
-      with self.assertRaises((IOError, OSError)):
+      with self.assertRaises(OSError):
         v2_test_store_rw.Open(path=v1_storage_path, read_only=False)
 
       v2_test_store_ro = _TestSQLiteAttributeContainerStoreV20221023()
