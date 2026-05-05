@@ -23,20 +23,18 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
 
     Raises:
       OSError: if the store cannot be read from.
-      IOError: if the store cannot be read from.
     """
     if not self._is_open:
-      raise IOError('Unable to read from closed storage writer.')
+      raise OSError('Unable to read from closed storage writer.')
 
   def _RaiseIfNotWritable(self):
     """Raises if the storage file is not writable.
 
     Raises:
-      IOError: when the storage writer is closed.
       OSError: when the storage writer is closed.
     """
     if not self._is_open:
-      raise IOError('Unable to write to closed storage writer.')
+      raise OSError('Unable to write to closed storage writer.')
 
   def _WriteExistingAttributeContainer(self, container):
     """Writes an existing attribute container to the store.
@@ -45,8 +43,6 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
       container (AttributeContainer): attribute container.
 
     Raises:
-      IOError: if an unsupported identifier is provided or if the attribute
-          container does not exist.
       OSError: if an unsupported identifier is provided or if the attribute
           container does not exist.
     """
@@ -55,9 +51,9 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
 
     containers = self._attribute_containers.get(container.CONTAINER_TYPE, None)
     if containers is None or lookup_key not in containers:
-      raise IOError((
+      raise OSError(
           f'Missing attribute container: {container.CONTAINER_TYPE:s} with '
-          f'identifier: {lookup_key:s}'))
+          f'identifier: {lookup_key:s}')
 
     containers[lookup_key] = container
 
@@ -96,11 +92,10 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     """Closes the store.
 
     Raises:
-      IOError: if the store is already closed.
       OSError: if the store is already closed.
     """
     if not self._is_open:
-      raise IOError('Store already closed.')
+      raise OSError('Store already closed.')
 
     self._is_open = False
 
@@ -189,10 +184,9 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     """Opens the store.
 
     Raises:
-      IOError: if the store is already opened.
       OSError: if the store is already opened.
     """
     if self._is_open:
-      raise IOError('Store already opened.')
+      raise OSError('Store already opened.')
 
     self._is_open = True

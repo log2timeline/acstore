@@ -83,7 +83,6 @@ class AttributeContainerStore:
 
     Raises:
       OSError: if the store cannot be read from.
-      IOError: if the store cannot be read from.
     """
 
   @abc.abstractmethod
@@ -92,7 +91,6 @@ class AttributeContainerStore:
 
     Raises:
       OSError: if the store cannot be written to.
-      IOError: if the store cannot be written to.
     """
 
   def _SetAttributeContainerNextSequenceNumber(
@@ -130,7 +128,6 @@ class AttributeContainerStore:
 
     Raises:
       OSError: if the store cannot be written to.
-      IOError: if the store cannot be written to.
     """
     self._RaiseIfNotWritable()
     self._WriteNewAttributeContainer(container)
@@ -219,7 +216,6 @@ class AttributeContainerStore:
 
     Raises:
       OSError: if the store cannot be written to.
-      IOError: if the store cannot be written to.
     """
     self._RaiseIfNotWritable()
     self._WriteExistingAttributeContainer(container)

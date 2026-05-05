@@ -66,16 +66,16 @@ class YAMLAttributeContainerDefinitionsFile:
       different_keys = ', '.join(different_keys)
       raise errors.ParseError(f'Undefined keys: {different_keys:s}')
 
-    container_name = definition_values.get('name', None)
+    container_name = definition_values.get('name')
     if not container_name:
       raise errors.ParseError(
           'Invalid attribute container definition missing name.')
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if not attributes:
-      raise errors.ParseError((
+      raise errors.ParseError(
           f'Invalid attribute container definition: {container_name:s} '
-          f'missing attributes.'))
+          f'missing attributes.')
 
     class_name = ''.join([
         element.title() for element in container_name.split('_')])
@@ -84,28 +84,28 @@ class YAMLAttributeContainerDefinitionsFile:
     container_schema = {}
 
     for attribute_index, attribute_values in enumerate(attributes):
-      attribute_name = attribute_values.get('name', None)
+      attribute_name = attribute_values.get('name')
       if not attribute_name:
-        raise errors.ParseError((
+        raise errors.ParseError(
             f'Invalid attribute container definition: {container_name:s} name '
-            f'missing of attribute: {attribute_index:d}.'))
+            f'missing of attribute: {attribute_index:d}.')
 
       if attribute_name in class_attributes:
-        raise errors.ParseError((
+        raise errors.ParseError(
             f'Invalid attribute container definition: {container_name:s} '
-            f'attribute: {attribute_name:s} already set.'))
+            f'attribute: {attribute_name:s} already set.')
 
-      attribute_data_type = attribute_values.get('type', None)
+      attribute_data_type = attribute_values.get('type')
       if not attribute_data_type:
-        raise errors.ParseError((
+        raise errors.ParseError(
             f'Invalid attribute container definition: {container_name:s} type '
-            f'missing of attribute: {attribute_name:s}.'))
+            f'missing of attribute: {attribute_name:s}.')
 
       if not schema.SchemaHelper.HasDataType(attribute_data_type):
-        raise errors.ParseError((
+        raise errors.ParseError(
             f'Invalid attribute container definition: {container_name:s} type '
             f'attribute: {attribute_name:s} unsupported data type: '
-            f'{attribute_data_type:s}.'))
+            f'{attribute_data_type:s}.')
 
       class_attributes[attribute_name] = None
       container_schema[attribute_name] = attribute_data_type
@@ -139,5 +139,5 @@ class YAMLAttributeContainerDefinitionsFile:
     Yields:
       AttributeContainer: an attribute container.
     """
-    with open(path, 'r', encoding='utf-8') as file_object:
+    with open(path, encoding='utf-8') as file_object:
       yield from self._ReadFromFileObject(file_object)

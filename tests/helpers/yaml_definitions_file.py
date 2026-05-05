@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Tests for the YAML-based attribute container definitions file."""
 
-import io
 import unittest
 
 from acstore import errors
@@ -66,7 +65,7 @@ class YAMLAttributeContainerDefinitionsFileTest(shared_test_lib.BaseTestCase):
     test_definitions_file = (
         yaml_definitions_file.YAMLAttributeContainerDefinitionsFile())
 
-    with io.open(test_file_path, 'r', encoding='utf-8') as file_object:
+    with open(test_file_path, encoding='utf-8') as file_object:
       definitions = list(test_definitions_file._ReadFromFileObject(file_object))
 
     self.assertEqual(len(definitions), 1)
