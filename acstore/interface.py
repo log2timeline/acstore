@@ -263,7 +263,7 @@ class AttributeContainerStoreWithReadCache(AttributeContainerStore):
       AttributeContainer: attribute container or None if not available.
     """
     lookup_key = f'{container_type:s}.{index:d}'
-    attribute_container = self._attribute_container_cache.get(lookup_key, None)
+    attribute_container = self._attribute_container_cache.get(lookup_key)
     if attribute_container:
       self._attribute_container_cache.move_to_end(lookup_key, last=False)
     return attribute_container
