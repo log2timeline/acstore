@@ -49,7 +49,7 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     identifier = container.GetIdentifier()
     lookup_key = identifier.CopyToString()
 
-    containers = self._attribute_containers.get(container.CONTAINER_TYPE, None)
+    containers = self._attribute_containers.get(container.CONTAINER_TYPE)
     if containers is None or lookup_key not in containers:
       raise OSError(
           f'Missing attribute container: {container.CONTAINER_TYPE:s} with '
@@ -63,7 +63,7 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     Args:
       container (AttributeContainer): attribute container.
     """
-    containers = self._attribute_containers.get(container.CONTAINER_TYPE, None)
+    containers = self._attribute_containers.get(container.CONTAINER_TYPE)
     if containers is None:
       containers = collections.OrderedDict()
       self._attribute_containers[container.CONTAINER_TYPE] = containers
@@ -112,7 +112,7 @@ class FakeAttributeContainerStore(interface.AttributeContainerStore):
     containers = self._attribute_containers.get(container_type, {})
 
     lookup_key = identifier.CopyToString()
-    return containers.get(lookup_key, None)
+    return containers.get(lookup_key)
 
   def GetAttributeContainerByIndex(self, container_type, index):
     """Retrieves a specific attribute container.

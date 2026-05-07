@@ -267,7 +267,7 @@ class SQLiteAttributeContainerStore(
     Raises:
       OSError: if the storage metadata is not supported.
     """
-    format_version = metadata_values.get('format_version', None)
+    format_version = metadata_values.get('format_version')
 
     if not format_version:
       raise OSError('Missing format version.')
@@ -296,7 +296,7 @@ class SQLiteAttributeContainerStore(
           f'Format version: {format_version:d} is too new and not yet '
           f'supported, minimum supported version: {self._FORMAT_VERSION:d}')
 
-    serialization_format = metadata_values.get('serialization_format', None)
+    serialization_format = metadata_values.get('serialization_format')
     if serialization_format != 'json':
       raise OSError(
           f'Unsupported serialization format: {serialization_format!s}')

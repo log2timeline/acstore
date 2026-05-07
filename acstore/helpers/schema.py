@@ -38,8 +38,8 @@ class SchemaHelper:
     Returns:
       AttributeSerializer: attribute serializer or None if not available.
     """
-    serializers = cls._data_types.get(data_type, None) or {}
-    return serializers.get(serialization_method, None)
+    serializers = cls._data_types.get(data_type) or {}
+    return serializers.get(serialization_method)
 
   @classmethod
   def HasDataType(cls, data_type):
