@@ -2,8 +2,8 @@
 
 
 class Error(Exception):
-  """The error interface."""
+    """The error interface."""
 
 
 class ParseError(Error):
-  """Raised when a parse error occurred."""
+    """Raised when a parse error occurred."""
