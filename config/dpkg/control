@@ -11,5 +11,5 @@ Package: python3-acstore
 Architecture: all
 Depends: python3-yaml (>= 3.10), ${misc:Depends}
 Description: Python 3 module of ACStore
- ACStore, or Attribute Container Storage, provides a stand-alone
- implementation to read and write attribute container storage files.
+ ACStore, or Attribute Container Storage, provides a stand-alone implementation
+ to read and write attribute container storage files.
