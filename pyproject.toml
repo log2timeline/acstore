@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "acstore"
-version = "20260526"
+version = "20260527"
 description = "Attribute Container Storage (ACStore)"
 maintainers = [
     { name = "Log2Timeline maintainers", email = "log2timeline-maintainers@googlegroups.com" },
@@ -35,6 +35,14 @@ include = "\\.pyi?$"
 black = true
 non-cap = []
 non-strict = true
+
+[tool.l2tdevtools]
+name = "ACStore"
+status = "alpha"
+description = """
+ACStore, or Attribute Container Storage, provides a stand-alone implementation \
+to read and write attribute container storage files. \
+"""
 
 [tool.setuptools]
 package-dir = {"acstore" = "acstore"}
