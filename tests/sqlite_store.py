@@ -3,6 +3,7 @@
 
 import os
 import unittest
+from unittest import mock
 
 from acstore import sqlite_store
 from acstore.containers import manager as containers_manager
@@ -280,6 +281,45 @@ class SQLiteAttributeContainerStoreTest(test_lib.BaseTestCase):
                 result = test_store._HasTable("bogus")
                 self.assertFalse(result)
 
+            finally:
+                test_store.Close()
+
+    def testOpenOnlyCountsExistingContainerTables(self):
+        """Tests Open only counts rows for existing container tables."""
+        attribute_container = test_lib.TestAttributeContainer()
+
+        with test_lib.TempDirectory() as temp_directory:
+            test_path = os.path.join(temp_directory, "acstore.sqlite")
+            test_store = sqlite_store.SQLiteAttributeContainerStore()
+            test_store.Open(path=test_path, read_only=False)
+            test_store.AddAttributeContainer(attribute_container)
+            test_store.Close()
+
+            test_store = sqlite_store.SQLiteAttributeContainerStore()
+            with mock.patch.object(
+                test_store._containers_manager,
+                "GetContainerTypes",
+                return_value=[attribute_container.CONTAINER_TYPE, "missing"],
+            ), mock.patch.object(
+                test_store,
+                "_GetNumberOfAttributeContainerRows",
+                wraps=test_store._GetNumberOfAttributeContainerRows,
+            ) as get_number_of_rows:
+                test_store.Open(path=test_path)
+
+            try:
+                get_number_of_rows.assert_called_once_with(
+                    attribute_container.CONTAINER_TYPE
+                )
+                self.assertEqual(
+                    test_store._attribute_container_sequence_numbers[
+                        attribute_container.CONTAINER_TYPE
+                    ],
+                    1,
+                )
+                self.assertEqual(
+                    test_store._attribute_container_sequence_numbers["missing"], 0
+                )
             finally:
                 test_store.Close()
 

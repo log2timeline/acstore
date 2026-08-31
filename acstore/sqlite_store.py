@@ -218,6 +218,8 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStoreWithReadCac
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name = '{0:s}'"
     )
 
+    _TABLE_NAMES_QUERY = "SELECT name FROM sqlite_master WHERE type = 'table'"
+
     _INSERT_METADATA_VALUE_QUERY = "INSERT INTO metadata (key, value) VALUES (?, ?)"
 
     _MAXIMUM_WRITE_CACHE_SIZE = 50
@@ -544,6 +546,22 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStoreWithReadCac
             return 0
 
         return row[0] or 0
+
+    def _GetTableNames(self):
+        """Retrieves the names of all tables in the store.
+
+        Returns:
+          frozenset[str]: table names.
+
+        Raises:
+          OSError: when there is an error querying the attribute container store.
+        """
+        try:
+            self._cursor.execute(self._TABLE_NAMES_QUERY)
+        except (sqlite3.InterfaceError, sqlite3.OperationalError) as exception:
+            raise OSError("Unable to query attribute container store") from exception
+
+        return frozenset(row[0] for row in self._cursor.fetchall())
 
     def _HasTable(self, table_name):
         """Determines if a specific table exists.
@@ -1071,10 +1089,13 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStoreWithReadCac
 
         # Initialize next_sequence_number based on the file contents so that
         # AttributeContainerIdentifier points to the correct attribute container.
+        table_names = self._GetTableNames()
         for container_type in self._containers_manager.GetContainerTypes():
-            next_sequence_number = self._GetNumberOfAttributeContainerRows(
-                container_type
-            )
+            next_sequence_number = 0
+            if container_type in table_names:
+                next_sequence_number = self._GetNumberOfAttributeContainerRows(
+                    container_type
+                )
             self._SetAttributeContainerNextSequenceNumber(
                 container_type, next_sequence_number
             )
