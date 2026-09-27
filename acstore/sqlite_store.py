@@ -797,7 +797,7 @@ class SQLiteAttributeContainerStore(interface.AttributeContainerStoreWithReadCac
           bool: True if the format is supported.
         """
         # Check if the path is an existing file, to prevent sqlite3 creating
-        # an emtpy database file.
+        # an empty database file.
         if not os.path.isfile(path):
             return False
 
