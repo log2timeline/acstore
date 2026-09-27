@@ -14,7 +14,7 @@ cd acstore_venv
 source ./bin/activate
 ```
 
-Upgrade pip and install ACStore dependencies:
+Upgrade pip and install ACStore:
 
 ```bash
 pip install --upgrade pip

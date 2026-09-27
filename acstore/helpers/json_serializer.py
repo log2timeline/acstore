@@ -12,7 +12,7 @@ class AttributeContainerJSONSerializer:
 
     @classmethod
     def ConvertAttributeContainerToJSON(cls, attribute_container):
-        """Converts an attribute container object into a JSON dictioary.
+        """Converts an attribute container object into a JSON dictionary.
 
         The resulting dictionary of the JSON serialized objects consists of:
         {
