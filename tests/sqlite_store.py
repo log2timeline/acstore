@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests for the SQLite-based attribute container store."""
 
+import ast
 import os
 import unittest
 
@@ -32,7 +33,40 @@ class _TestSQLiteAttributeContainerStoreV20221023(
     _READ_COMPATIBLE_FORMAT_VERSION = 20211121
 
 
-# TODO add tests for PythonAST2SQL.
+class PythonAST2SQLHelperTest(test_lib.BaseTestCase):
+    """Tests for the Python AST to SQL helper."""
+
+    def testConvertNode(self):
+        """Tests the ConvertNode function."""
+        ast_to_sql_helper = sqlite_store.PythonAST2SQLHelper()
+
+        expression_ast = ast.parse("attribute == -5", mode="eval")
+        sql_expression = ast_to_sql_helper.ConvertNode(expression_ast.body)
+        self.assertEqual(sql_expression, "attribute = -5")
+
+        expression_ast = ast.parse("attribute == -1.5", mode="eval")
+        sql_expression = ast_to_sql_helper.ConvertNode(expression_ast.body)
+        self.assertEqual(sql_expression, "attribute = -1.5")
+
+        expression_ast = ast.parse("attribute == +5", mode="eval")
+        sql_expression = ast_to_sql_helper.ConvertNode(expression_ast.body)
+        self.assertEqual(sql_expression, "attribute = 5")
+
+        expression_ast = ast.parse(
+            'attribute == "value" and message_identifier == -5', mode="eval"
+        )
+        sql_expression = ast_to_sql_helper.ConvertNode(expression_ast.body)
+        self.assertEqual(
+            sql_expression, 'attribute = "value" AND message_identifier = -5'
+        )
+
+        expression_ast = ast.parse("attribute == -other", mode="eval")
+        with self.assertRaises(TypeError):
+            ast_to_sql_helper.ConvertNode(expression_ast.body)
+
+        expression_ast = ast.parse("attribute == (not 5)", mode="eval")
+        with self.assertRaises(TypeError):
+            ast_to_sql_helper.ConvertNode(expression_ast.body)
 
 
 class SQLiteSchemaHelperTest(test_lib.BaseTestCase):

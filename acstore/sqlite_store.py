@@ -19,6 +19,8 @@ class PythonAST2SQLHelper:
 
     _COMPARE_OPERATORS = {ast.Eq: " = ", ast.NotEq: " <> "}
 
+    _UNARY_OPERATORS = {ast.UAdd: "", ast.USub: "-"}
+
     def _ConvertBoolOperation(self, ast_node):
         """Converts an AST boolean operation node to SQL.
 
@@ -64,6 +66,36 @@ class PythonAST2SQLHelper:
 
         return sql_operator.join([sql_left, sql_right])
 
+    def _ConvertUnaryOperation(self, ast_node):
+        """Converts an AST unary operation node to SQL.
+
+        Only unary plus and minus applied to a numeric constant are supported,
+        such as the negative numbers in a filter expression.
+
+        Args:
+          ast_node (ast.Node): AST node.
+
+        Returns:
+          str: SQL statement.
+
+        Raises:
+          TypeError: if the type of node is not supported.
+        """
+        sql_operator = self._UNARY_OPERATORS.get(type(ast_node.op))
+        if sql_operator is None:
+            raise TypeError(ast_node)
+
+        operand = ast_node.operand
+        # Note that bool is a subclass of int.
+        if (
+            not isinstance(operand, ast.Constant)
+            or isinstance(operand.value, bool)
+            or not isinstance(operand.value, (int, float))
+        ):
+            raise TypeError(ast_node)
+
+        return f"{sql_operator:s}{operand.value!s}"
+
     _CONVERT_METHODS = {
         ast.BoolOp: _ConvertBoolOperation,
         ast.Compare: _ConvertCompare,
@@ -73,6 +105,7 @@ class PythonAST2SQLHelper:
             else str(ast_node.value)
         ),
         ast.Name: lambda _, ast_node: ast_node.id,
+        ast.UnaryOp: _ConvertUnaryOperation,
     }
 
     def ConvertNode(self, ast_node):
