@@ -94,6 +94,19 @@ class PythonAST2SQLHelper:
         return convert_methods(self, ast_node)
 
 
+class SQLiteAttributeSerializer(
+    interface.AttributeSerializer
+):  # pylint: disable=abstract-method
+    """SQLite attribute serializer.
+
+    An attribute serializer registered for the "sqlite" serialization method stores the
+    values of a schema data type in a column of STORAGE_DATA_TYPE instead of as JSON in
+    a TEXT column.
+    """
+
+    STORAGE_DATA_TYPE = "TEXT"
+
+
 class SQLiteSchemaHelper:
     """SQLite schema helper."""
 
@@ -113,7 +126,14 @@ class SQLiteSchemaHelper:
         Returns:
           str: corresponding SQLite data type.
         """
-        return self._MAPPINGS.get(data_type, "TEXT")
+        storage_data_type = self._MAPPINGS.get(data_type)
+        if not storage_data_type:
+            serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+                data_type, "sqlite"
+            )
+            storage_data_type = getattr(serializer, "STORAGE_DATA_TYPE", "TEXT")
+
+        return storage_data_type
 
     def DeserializeValue(self, data_type, value):
         """Deserializes a value.
@@ -141,6 +161,12 @@ class SQLiteSchemaHelper:
                 value = bool(value)
 
             elif data_type not in self._MAPPINGS:
+                serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+                    data_type, "sqlite"
+                )
+                if serializer:
+                    return serializer.DeserializeValue(value)
+
                 serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
                     data_type, "json"
                 )
@@ -175,6 +201,12 @@ class SQLiteSchemaHelper:
                 value = int(value)
 
             elif data_type not in self._MAPPINGS:
+                serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
+                    data_type, "sqlite"
+                )
+                if serializer:
+                    return serializer.SerializeValue(value)
+
                 serializer = schema_helper.SchemaHelper.GetAttributeSerializer(
                     data_type, "json"
                 )
